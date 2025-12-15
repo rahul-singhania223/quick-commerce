@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String   @id @default(uuid())
+  phone      String   @unique
+  email      String?
+  role       Role     @default(CUSTOMER)
+  status     Status   @default(ACTIVE)
+  created_at DateTime @default(now())
+  updated_at DateTime
+  Stores     Store[]
+}
+
+model Zone {
+  id        String   @id @default(uuid())
+  name      String
+  boundary  Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Stores    Store[]
+}
+
+model Store {
+  id         String       @id @default(uuid())
+  user_id    String
+  zoneId     String?
+  name       String
+  owner_name String
+  phone      String
+  gst_number String
+  address    String
+  city       String
+  zip_code   String
+  lattitude  Float
+  longitude  Float
+  status     Store_Status @default(OPEN)
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  User       User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  Zone       Zone?        @relation(fields: [zoneId], references: [id])
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+  STORE_OWNER
+  DELIVERY_PARTNER
+}
+
+enum Store_Status {
+  OPEN
+  CLOSED
+  BUSY
+}
+
+enum Status {
+  ACTIVE
+  BANNED
+}

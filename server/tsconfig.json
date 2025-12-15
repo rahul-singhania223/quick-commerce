@@ -1,0 +1,13 @@
+// tsconfig.json
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2023",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true 
+  },
+  "include": ["src/**/*"]
+}
