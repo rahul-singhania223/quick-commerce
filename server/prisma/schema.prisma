@@ -31,21 +31,20 @@ model Zone {
 model Store {
   id         String       @id @default(uuid())
   user_id    String
-  zoneId     String?
+  zone_id    String
   name       String
   owner_name String
   phone      String
   gst_number String
   address    String
-  city       String
-  zip_code   String
-  lattitude  Float
-  longitude  Float
+  lattitude  Decimal
+  longitude  Decimal
+  verified   Boolean      @default(false)
   status     Store_Status @default(OPEN)
   created_at DateTime     @default(now())
   updated_at DateTime     @updatedAt
   User       User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  Zone       Zone?        @relation(fields: [zoneId], references: [id])
+  Zone       Zone?        @relation(fields: [zone_id], references: [id])
 }
 
 enum Role {

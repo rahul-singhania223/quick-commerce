@@ -5,7 +5,7 @@ import { ApiError } from "../utils/api-error.ts";
 // GET USER (PHONE)
 export const getUserByPhone = async (phone: string) => {
   try {
-    const data = db.user.findUnique({
+    const data = await db.user.findUnique({
       where: {
         phone,
       },
@@ -20,7 +20,7 @@ export const getUserByPhone = async (phone: string) => {
 // GET USER BY ID
 export const getUserById = async (id: string) => {
   try {
-    const user = db.user.findUnique({ where: { id } });
+    const user = await db.user.findUnique({ where: { id } });
     return user;
   } catch (error) {
     return null;
@@ -30,7 +30,7 @@ export const getUserById = async (id: string) => {
 // CREATE USER
 export const createUser = async (data: User) => {
   try {
-    const user = db.user.create({ data });
+    const user = await db.user.create({ data });
     return user;
   } catch (error) {
     throw new ApiError(500, "DB_ERROR", "Couldn't create user", error);
@@ -40,7 +40,7 @@ export const createUser = async (data: User) => {
 // UPDATE USER
 export const updateUser = async (id: string, data: User) => {
   try {
-    const user = db.user.update({ where: { id }, data });
+    const user = await db.user.update({ where: { id }, data });
     return user;
   } catch (error) {
     throw new ApiError(500, "DB_ERROR", "Couldn't update user", error);

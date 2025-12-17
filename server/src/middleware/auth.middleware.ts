@@ -9,6 +9,8 @@ import {
 } from "../utils/token.util.ts";
 import { getStore } from "../models/store.model.ts";
 import { Store } from "../generated/prisma/client.ts";
+import { getUserById } from "../models/user.model.ts";
+import { validate as isValidUUID } from "uuid";
 
 // AUTHRORIZE USER
 export const authorizeUser = asyncHandler(
@@ -77,23 +79,28 @@ export const authorizeUser = asyncHandler(
   }
 );
 
-// AUTHRORIZE STORE OWNER
-export const authorizeOwner = asyncHandler(
+// AUTHRORIZE STORE
+export const authorizeStoreOwner = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
+    const { id: storeId } = req.params;
+
     if (!user) return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
 
-    const storeId = req.params.id;
-    if (!storeId)
-      return next(new ApiError(400, "INVLAID_DATA", "Invalid store ID!"));
+    if (!storeId || !isValidUUID(storeId))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid store id!"));
 
-    const store: Store = await getStore(storeId);
+    const store = await getStore(storeId);
     if (!store) return next(new ApiError(404, "NOT_FOUND", "Store not found!"));
 
-    const isOwnerOfStore = store.user_id === user.id;
+    
 
-    if (!isOwnerOfStore)
-      return next(new ApiError(403, "FORBIDDEN", "You are not the owner!"));
+    if (store.user_id !== user.id)
+      return next(
+        new ApiError(403, "FORBIDDEN", "You are not the store owner!")
+      );
+
+    req.store = store;
 
     return next();
   }
@@ -105,8 +112,13 @@ export const authorizeAdmin = asyncHandler(
     const user = req.user;
     if (!user) return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
 
-    if (user.role !== "ADMIN")
+    const dbUser = await getUserById(user.id as string);
+    if (!dbUser) return next(new ApiError(404, "NOT_FOUND", "User not found!"));
+
+    if (dbUser.role !== "ADMIN")
       return next(new ApiError(403, "FORBIDDEN", "You are not an admin!"));
+
+    req.user = dbUser;
     return next();
   }
 );

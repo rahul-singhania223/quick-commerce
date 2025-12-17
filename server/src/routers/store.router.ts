@@ -1,9 +1,19 @@
 import { Router } from "express";
-import { authorizeUser } from "../middleware/auth.middleware.ts";
-import { getAllUserStores } from "../controllers/store.controller.ts";
+import {
+  authorizeAdmin,
+  authorizeStoreOwner,
+  authorizeUser,
+} from "../middleware/auth.middleware.ts";
+import {
+  createStore,
+  deleteStore,
+  getAllStores,
+  getAllUserStores,
+  getStore,
+  updateStore,
+} from "../controllers/store.controller.ts";
 import { validateForm } from "../middleware/validate.middleware.ts";
-import { storeFormSchema } from "../schemas/store.schema.ts";
-import { createStore } from "../models/store.model.ts";
+import { createStoreSchema } from "../schemas/store.schema.ts";
 // import { validateForm } from "../middleware/validate.middleware.ts";
 
 const router = Router();
@@ -12,23 +22,29 @@ const router = Router();
 router.get("/", authorizeUser, getAllUserStores);
 
 // GET ALL STORES (ADMIN)
-// router.get("/all", authorizeUser, authorizeAdmin, getAllStores);
+router.get("/all", authorizeUser, authorizeAdmin, getAllStores);
 
-// // GET STORE
-// router.get("/:id", authorizeUser, authorizeOwner, getStore);
+// GET STORE
+router.get("/:id", authorizeUser, getStore);
 
 // CREATE STORE
 router.post(
   "/create",
-  validateForm(storeFormSchema),
+  validateForm(createStoreSchema),
   authorizeUser,
   createStore
 );
 
-// // UPDATE STORE
-// router.put("/update/:id", validateForm(storeSchema), authorizeUser, authorizeOwner, updateStore);
+// UPDATE STORE
+router.put(
+  "/update/:id",
+  validateForm(createStoreSchema),
+  authorizeUser,
+  authorizeStoreOwner,
+  updateStore
+);
 
-// // DELETE STORE
-// router.delete("/delete/:id", authorizeUser, authorizeOwner, deleteStore);
+// DELETE STORE
+router.delete("/delete/:id", authorizeUser, authorizeStoreOwner, deleteStore);
 
 export default router;

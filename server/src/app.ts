@@ -1,5 +1,5 @@
 import express, { NextFunction, type Request, type Response } from "express";
-import { storeRouter, userRouter } from "./routers/index.ts";
+import { storeRouter, userRouter, zoneRouter } from "./routers/index.ts";
 import { ApiError } from "./utils/api-error.ts";
 import apiErrorHandler from "./middleware/error.middleware.ts";
 import cookieParser from "cookie-parser";
@@ -16,6 +16,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/store", storeRouter);
+app.use("/api/v1/zone", zoneRouter);
 
 
 // catch unkown routes

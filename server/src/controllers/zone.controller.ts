@@ -6,6 +6,16 @@ import {
 import { APIResponse } from "../utils/api-response.util.ts";
 import { NextFunction, Request, Response } from "express";
 import { ApiError } from "../utils/api-error.ts";
+import z from "zod";
+import { createZoneSchema } from "../schemas/zone.schema.ts";
+import { Zone } from "../generated/prisma/client.ts";
+import { v4, validate as isValidUUID } from "uuid";
+import {
+  createZone as createDbZone,
+  getZone as getDbZone,
+  updateZone as updateDbZone,
+  deleteZone as deleteDbZone,
+} from "../models/zone.model.ts";
 
 // GET ALL ZONES
 export const getAllZones = asyncHandler(
@@ -24,8 +34,10 @@ export const getAllZones = asyncHandler(
 export const getZone = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
+    if (!id || !isValidUUID(id))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid zone ID!"));
 
-    const zone = await fetchZone(id);
+    const zone = await getDbZone(id);
     if (!zone) return next(new ApiError(404, "DB_ERROR", "Zone not found!"));
 
     return res
@@ -37,8 +49,87 @@ export const getZone = asyncHandler(
 // CREATE ZONE
 export const createZone = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const data = req.body;
+    const data = req.body as z.infer<typeof createZoneSchema>;
+
     if (!data)
-      return next(new ApiError(400, "INVALID_DATA", "All input fields are required!"));
+      return next(
+        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+      );
+
+    const { name, boundary } = data;
+
+    const newZoneData: Zone = {
+      id: v4(),
+      name,
+      boundary,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const newZone = await createDbZone(newZoneData);
+    if (!newZone)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't create new zone!"));
+
+    return res
+      .status(200)
+      .json(new APIResponse("success", "Created new zone", newZone));
   }
-)
+);
+
+// UPDATE ZONE
+export const updateZone = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const zoneId = req.params.id;
+    if (!zoneId || !isValidUUID(zoneId))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid zone ID!"));
+
+    const data = req.body as z.infer<typeof createZoneSchema>;
+    if (!data)
+      return next(
+        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+      );
+
+    const existingZone = await getDbZone(zoneId);
+    if (!existingZone)
+      return next(new ApiError(404, "DB_ERROR", "Zone not found!"));
+
+    const updatedZoneData: Zone = {
+      ...existingZone,
+      ...data,
+      updatedAt: new Date(),
+    };
+
+    const updatedZone = await updateDbZone(zoneId, updatedZoneData);
+    if (!updatedZone)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update zone!"));
+
+    return res
+      .status(200)
+      .json(
+        new APIResponse("success", "Zone updated successfully!", updatedZone)
+      );
+  }
+);
+
+// DELETE ZONE
+export const deleteZone = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const zoneId = req.params.id;
+    console.log(zoneId);
+    if (!zoneId || !isValidUUID(zoneId))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid zone ID!"));
+
+    const existingZone = await getDbZone(zoneId);
+    if (!existingZone)
+      return next(new ApiError(404, "DB_ERROR", "Zone not found!"));
+
+    const deletedZone = await deleteDbZone(zoneId);
+    if (!deletedZone)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't delete zone!"));
+
+    return res
+      .status(200)
+      .json(new APIResponse("success", "Zone deleted successfully!"));
+  }
+);

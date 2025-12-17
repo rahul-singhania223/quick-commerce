@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodSchema } from "zod";
-import { ApiError } from "../utils/api-error";
+import { ApiError } from "../utils/api-error.ts";
 
 export const validateForm =
   (schema: ZodSchema<any>) =>
   (req: Request, res: Response, next: NextFunction): any => {
     const data = req.body;
-    console.log(req);
+
     if (!data)
       return next(
         new ApiError(400, "INVALID_DATA", "All input fields are required!")

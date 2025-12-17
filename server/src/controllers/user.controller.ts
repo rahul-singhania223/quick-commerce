@@ -130,6 +130,7 @@ export const verifyOTP = asyncHandler(
 
     // authentication
     const user = await getUserByPhone(phone as string);
+    console.log(user)
     if (user) {
       const accessToken = generateAccessToken({userId: user.id});
       const refreshToken = generateRefreshToken({userId:user.id});
@@ -167,8 +168,8 @@ export const verifyOTP = asyncHandler(
 
     const id = v4();
     const sessionId = `session:${id}:${req.headers["user-agent"]}`;
-    const accessToken = generateAccessToken({userId: user.id});
-    const refreshToken = generateRefreshToken({userId:user.id});
+    const accessToken = generateAccessToken({userId: id});
+    const refreshToken = generateRefreshToken({userId: id});
 
     const newUserData: User = {
       id,
