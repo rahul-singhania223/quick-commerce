@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../utils/async-handler.ts";
 import { ApiError } from "../utils/api-error.ts";
 import { generateOTP } from "../utils/otp.util.ts";
-import { v4 } from "uuid";
+import { v4, validate as isValidUUID } from "uuid";
 import redis from "../configs/redis.config.ts";
 import sendOTP from "../utils/send-otp.ts";
 import bcrypt from "bcrypt";
@@ -14,6 +14,8 @@ import {
 } from "../utils/token.util.ts";
 import { APIResponse } from "../utils/api-response.util.ts";
 import { User } from "../generated/prisma/client.ts";
+import z from "zod";
+import { otpFormSchema } from "../schemas/auth.schema.ts";
 
 config();
 
@@ -30,7 +32,7 @@ export const getOTP = asyncHandler(
     const OTP_ATTEMPTS = 5;
     const RESEND_WINDOW_SEC = 3600; // 1 hour
     const RESEND_LIMIT_PER_HOUR = 5;
-    const RESEND_WAIT_SEC = 30;
+    const RESEND_WAIT_SEC = 60;
 
     // rate limit ( 5 resends per hour )
     const phoneReqKey = `otp:requests:${phone}:${Math.floor(
@@ -60,9 +62,10 @@ export const getOTP = asyncHandler(
       );
 
     // Generate and store
+    const sessionId = v4();
     const OTP = generateOTP(6);
     const otpHash = await bcrypt.hash(OTP, 8);
-    const otpKey = `otp:pending:${phone}`;
+    const otpKey = `otp:pending:${sessionId}:${phone}`;
 
     // TODO: send otp
     console.log(OTP);
@@ -71,40 +74,49 @@ export const getOTP = asyncHandler(
     await redis
       .multi()
       .hmset(otpKey, {
+        phone,
         otp_hash: otpHash,
         attempts_left: OTP_ATTEMPTS,
+        resend_at: Date.now() + RESEND_WAIT_SEC * 1000,
         created_at: Date.now(),
       })
       .expire(otpKey, OTP_TTL)
-      .set(lastSendKey, Date.now(), "EX", RESEND_WAIT_SEC) // prevents resend for 60s
+      .set(lastSendKey, Date.now(), "EX", RESEND_WAIT_SEC) // prevents resend for 30s
       .exec();
 
-    return res.status(200).json({ msg: "OTP sent successfully", phone });
+    return res.status(200).json(
+      new APIResponse("SUCCESS", "OTP sent!", {
+        session_id: sessionId,
+        phone,
+      })
+    );
   }
 );
 
 // VERIFY OTP + AUTHENTICATION
 export const verifyOTP = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { OTP } = req.body;
-    const { phone } = req.query;
+    const { OTP, phone, session_id } = req.body as z.infer<
+      typeof otpFormSchema
+    >;
 
-    if (!phone || !OTP)
+    if (!phone || !OTP || !session_id)
       return next(
-        new ApiError(400, "INVALID_DATA", "Phone & OTP are required!")
+        new ApiError(
+          400,
+          "INVALID_DATA",
+          "Phone & OTP & Session ID are required!"
+        )
       );
 
-    if (/^[6-9]\d{9}$/.test(String(phone)) === false)
-      return next(new ApiError(400, "INVALID_PHONE", "Invalid phone number!"));
-
-    const otpKey = `otp:pending:${phone}`;
+    const otpKey = `otp:pending:${session_id}:${phone}`;
 
     const data = await redis.hgetall(otpKey);
     if (!data || !data.otp_hash)
       return next(
         new ApiError(
           400,
-          "INVALID_PHONE",
+          "INVALID_DATA",
           "OTP is either expired or not assigned!"
         )
       );
@@ -130,10 +142,9 @@ export const verifyOTP = asyncHandler(
 
     // authentication
     const user = await getUserByPhone(phone as string);
-    console.log(user)
     if (user) {
-      const accessToken = generateAccessToken({userId: user.id});
-      const refreshToken = generateRefreshToken({userId:user.id});
+      const accessToken = generateAccessToken({ userId: user.id });
+      const refreshToken = generateRefreshToken({ userId: user.id });
 
       const sessionId = `session:${user.id}:${req.headers["user-agent"]}`;
 
@@ -145,21 +156,23 @@ export const verifyOTP = asyncHandler(
       );
 
       return res
-        .cookie("refreshToken", refreshToken, {
+        .cookie("refresh_token", refreshToken, {
           httpOnly: true,
           secure: false,
-          sameSite: "none",
+          // secure: true,
+          // sameSite: "none",
           maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
         })
-        .cookie("accessToken", accessToken, {
+        .cookie("access_token", accessToken, {
           httpOnly: true,
           secure: false,
-          sameSite: "none",
+          // secure: true,
+          // sameSite: "none",
           maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
         })
         .json(
           new APIResponse(
-            "success",
+            "SUCCESS",
             "You are authenticated successfully!",
             user
           )
@@ -168,8 +181,8 @@ export const verifyOTP = asyncHandler(
 
     const id = v4();
     const sessionId = `session:${id}:${req.headers["user-agent"]}`;
-    const accessToken = generateAccessToken({userId: id});
-    const refreshToken = generateRefreshToken({userId: id});
+    const accessToken = generateAccessToken({ userId: id });
+    const refreshToken = generateRefreshToken({ userId: id });
 
     const newUserData: User = {
       id,
@@ -191,20 +204,65 @@ export const verifyOTP = asyncHandler(
     );
 
     return res
-      .cookie("refreshToken", refreshToken, {
+      .cookie("refresh_token", refreshToken, {
         httpOnly: true,
         secure: false,
         sameSite: "none",
         maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
       })
-      .cookie("accessToken", accessToken, {
+      .cookie("access_token", accessToken, {
         httpOnly: true,
         secure: false,
         sameSite: "none",
         maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
       })
       .json(
-        new APIResponse("success", "You are authenticated successfully!", user)
+        new APIResponse("SUCCESS", "You are authenticated successfully!", user)
       );
+  }
+);
+
+// GET OTP STATUS
+export const getOTPStatus = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { session_id, phone } = req.query;
+
+    if (!session_id || !phone)
+      return next(
+        new ApiError(400, "INVALID_DATA", "Session ID & Phone are required!")
+      );
+
+    if (isValidUUID(session_id) === false)
+      return next(
+        new ApiError(400, "INVALID_SESSION_ID", "Session ID is invalid!")
+      );
+
+    if (/^[6-9]\d{9}$/.test(phone as string) === false)
+      return next(
+        new ApiError(400, "INVALID_PHONE", "Phone number is invalid!")
+      );
+
+    const otpKey = `otp:pending:${session_id}:${phone}`;
+
+    const data = await redis.hgetall(otpKey);
+
+    if (!data || !data.otp_hash)
+      return next(
+        new ApiError(
+          400,
+          "INVALID_DATA",
+          "OTP is either expired or not assigned!"
+        )
+      );
+
+    return res.status(200).json(
+      new APIResponse("SUCCESS", "OTP status fetched successfully!", {
+        session_id,
+        phone: data.phone,
+        attempts_left: data.attempts_left,
+        resend_at: data.resend_at,
+        created_at: data.created_at,
+      })
+    );
   }
 );

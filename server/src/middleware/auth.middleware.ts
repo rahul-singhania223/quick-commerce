@@ -15,7 +15,8 @@ import { validate as isValidUUID } from "uuid";
 // AUTHRORIZE USER
 export const authorizeUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { accessToken, refreshToken } = req.cookies;
+    const { access_token: accessToken, refresh_token: refreshToken } =
+      req.cookies;
 
     if (accessToken) {
       const isValidAccessToken = jwt.verify(
@@ -63,13 +64,13 @@ export const authorizeUser = asyncHandler(
     );
 
     req.user = sessionData;
-    res.cookie("refreshToken", newRefreshToken, {
+    res.cookie("refresh_token", newRefreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "none",
       maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
     });
-    res.cookie("accessToken", newAccessToken, {
+    res.cookie("access_token", newAccessToken, {
       httpOnly: true,
       secure: false,
       sameSite: "none",
@@ -92,8 +93,6 @@ export const authorizeStoreOwner = asyncHandler(
 
     const store = await getStore(storeId);
     if (!store) return next(new ApiError(404, "NOT_FOUND", "Store not found!"));
-
-    
 
     if (store.user_id !== user.id)
       return next(
