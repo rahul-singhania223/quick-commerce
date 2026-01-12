@@ -19,12 +19,18 @@ export const authorizeUser = asyncHandler(
       req.cookies;
 
     if (accessToken) {
-      const isValidAccessToken = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN_SECRET!
-      ) as JwtPayload;
-      if (isValidAccessToken) {
-        const decodedAccessToken = jwt.decode(accessToken) as JwtPayload;
+      let decodedAccessToken: JwtPayload;
+
+      try {
+        decodedAccessToken = jwt.verify(
+          accessToken,
+          process.env.ACCESS_TOKEN_SECRET!
+        ) as JwtPayload;
+      } catch (err) {
+        return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
+      }
+
+      if (decodedAccessToken) {
         req.user = { id: decodedAccessToken.userId };
         return next();
       }
@@ -33,15 +39,16 @@ export const authorizeUser = asyncHandler(
     if (!refreshToken)
       return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
 
-    const isValidRefreshToken = jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_SECRET!
-    ) as JwtPayload;
+    let decodedRefreshToken: JwtPayload;
 
-    if (!isValidRefreshToken)
+    try {
+      decodedRefreshToken = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET!
+      ) as JwtPayload;
+    } catch (err) {
       return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
-
-    const decodedRefreshToken = jwt.decode(refreshToken) as JwtPayload;
+    }
 
     const sessionId = `session:${decodedRefreshToken.userId}:${req.headers["user-agent"]}`;
 
@@ -67,13 +74,13 @@ export const authorizeUser = asyncHandler(
     res.cookie("refresh_token", newRefreshToken, {
       httpOnly: true,
       secure: false,
-      sameSite: "none",
+      // sameSite: "none",
       maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
     });
     res.cookie("access_token", newAccessToken, {
       httpOnly: true,
       secure: false,
-      sameSite: "none",
+      // sameSite: "none",
       maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
     });
     return next();
@@ -84,20 +91,34 @@ export const authorizeUser = asyncHandler(
 export const authorizeStoreOwner = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    const { id: storeId } = req.params;
+    const { storeId } = req.params;
 
     if (!user) return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
 
     if (!storeId || !isValidUUID(storeId))
       return next(new ApiError(400, "INVALID_DATA", "Invalid store id!"));
 
+    // check if store exists
     const store = await getStore(storeId);
     if (!store) return next(new ApiError(404, "NOT_FOUND", "Store not found!"));
 
-    if (store.user_id !== user.id)
-      return next(
-        new ApiError(403, "FORBIDDEN", "You are not the store owner!")
-      );
+    // check if user is the store owner
+    if (store.user_id !== user.id) {
+      const dbUser = await getUserById(user.id as string);
+      if (!dbUser)
+        return next(new ApiError(404, "NOT_FOUND", "User not found!"));
+
+      // check if user is admin
+      const isAdmin = dbUser.role === "ADMIN";
+      if (!isAdmin)
+        return next(
+          new ApiError(
+            403,
+            "FORBIDDEN",
+            "You are not the store owner nor admin!"
+          )
+        );
+    }
 
     req.store = store;
 

@@ -17,15 +17,15 @@
 			"com.tldraw.asset.image": 5,
 			"com.tldraw.asset.video": 5,
 			"com.tldraw.shape.group": 0,
-			"com.tldraw.shape.text": 3,
+			"com.tldraw.shape.text": 4,
 			"com.tldraw.shape.bookmark": 2,
-			"com.tldraw.shape.draw": 2,
-			"com.tldraw.shape.geo": 10,
-			"com.tldraw.shape.note": 9,
+			"com.tldraw.shape.draw": 3,
+			"com.tldraw.shape.geo": 11,
+			"com.tldraw.shape.note": 10,
 			"com.tldraw.shape.line": 5,
 			"com.tldraw.shape.frame": 1,
-			"com.tldraw.shape.arrow": 7,
-			"com.tldraw.shape.highlight": 1,
+			"com.tldraw.shape.arrow": 8,
+			"com.tldraw.shape.highlight": 2,
 			"com.tldraw.shape.embed": 4,
 			"com.tldraw.shape.image": 5,
 			"com.tldraw.shape.video": 4,
@@ -34,13 +34,6 @@
 	},
 	"records": [
 		{
-			"gridSize": 10,
-			"name": "",
-			"meta": {},
-			"id": "document:document",
-			"typeName": "document"
-		},
-		{
 			"meta": {},
 			"id": "page:page",
 			"name": "Page 1",
@@ -48,12 +41,19 @@
 			"typeName": "page"
 		},
 		{
+			"gridSize": 10,
+			"name": "",
+			"meta": {},
+			"id": "document:document",
+			"typeName": "document"
+		},
+		{
+			"x": 0,
+			"y": 0,
+			"lastActivityTimestamp": 0,
+			"meta": {},
 			"id": "pointer:pointer",
-			"typeName": "pointer",
-			"x": 230.6666717529297,
-			"y": 202,
-			"lastActivityTimestamp": 1765352013251,
-			"meta": {}
+			"typeName": "pointer"
 		},
 		{
 			"followingUserId": null,
@@ -101,12 +101,12 @@
 			"typeName": "instance"
 		},
 		{
-			"editingShapeId": null,
+			"editingShapeId": "shape:AambRGHKfb2CG-oZGra4I",
 			"croppingShapeId": null,
 			"selectedShapeIds": [
-				"shape:UkOzipoj70iT0SIRLjYwt"
+				"shape:AambRGHKfb2CG-oZGra4I"
 			],
-			"hoveredShapeId": "shape:UkOzipoj70iT0SIRLjYwt",
+			"hoveredShapeId": "shape:AambRGHKfb2CG-oZGra4I",
 			"erasingShapeIds": [],
 			"hintingShapeIds": [],
 			"focusedGroupId": null,
@@ -116,32 +116,35 @@
 			"typeName": "instance_page_state"
 		},
 		{
-			"x": 0,
-			"y": 0,
+			"x": 347.3281192779541,
+			"y": 53.13541030883789,
 			"z": 1,
 			"meta": {},
 			"id": "camera:page:page",
 			"typeName": "camera"
 		},
 		{
-			"x": 206.6666717529297,
-			"y": 184.6666717529297,
+			"x": 137.33856773376465,
+			"y": 142.19793319702148,
 			"rotation": 0,
 			"isLocked": false,
 			"opacity": 1,
 			"meta": {},
-			"id": "shape:UkOzipoj70iT0SIRLjYwt",
+			"id": "shape:AambRGHKfb2CG-oZGra4I",
 			"type": "text",
 			"props": {
 				"color": "black",
 				"size": "m",
-				"w": 56.01041793823242,
+				"w": 390.57293701171875,
 				"font": "draw",
 				"textAlign": "start",
 				"autoSize": true,
 				"scale": 1,
 				"richText": {
 					"type": "doc",
+					"attrs": {
+						"dir": "auto"
+					},
 					"content": [
 						{
 							"type": "paragraph",
@@ -151,7 +154,7 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "User"
+									"text": "Brand Model, router, controller"
 								}
 							]
 						}
@@ -159,7 +162,7 @@
 				}
 			},
 			"parentId": "page:page",
-			"index": "a1g76EkV",
+			"index": "a1bwTx0V",
 			"typeName": "shape"
 		}
 	]

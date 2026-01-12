@@ -1,5 +1,5 @@
 import db from "../configs/db.config.ts";
-import { Zone } from "../generated/prisma/client.ts";
+import { Prisma, Zone } from "../generated/prisma/client.ts";
 
 // CREATE ZONE
 export const createZone = async (data: Zone) => {
@@ -22,9 +22,9 @@ export const getZone = async (id: string) => {
 };
 
 // GET ALL ZONES
-export const getAllZones = async () => {
+export const getAllZones = async (params?: Prisma.ZoneWhereInput) => {
   try {
-    const zones = await db.zone.findMany({});
+    const zones = await db.zone.findMany({ where: params });
     return zones;
   } catch (error) {
     return null;

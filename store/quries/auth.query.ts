@@ -1,10 +1,10 @@
 import api from "@/config/api.config";
 import { authFormSchema } from "@/schema/auth.schema";
-import { ErrorResponse } from "@/types/request.type";
 import { AxiosError } from "axios";
 import { NextRequest } from "next/server";
 import z, { nullable } from "zod";
 import { jwtVerify } from "jose";
+import { ErrorResponse } from "@/types/types";
 
 export const getOTP = async (data: z.infer<typeof authFormSchema>) => {
   try {
@@ -72,4 +72,28 @@ export const checkAuth = async (req: NextRequest) => {
   }
 };
 
+// LOG OUT
+export const logout = async () => {
+  try {
+    const res = await api.get("/user/logout");
+    return res;
+  } catch (error) {
+    console.log(error);
+    const errorResponse = (error as AxiosError).response?.data as ErrorResponse;
+    
+    throw errorResponse;
+  }
+};
 
+// GET USER
+export const getUser = async () => {
+  try {
+    const res = await api.get("/user");
+    return res;
+  } catch (error) {
+    console.log(error);
+    const errorResponse = (error as AxiosError).response?.data as ErrorResponse;
+    
+    throw errorResponse;
+  }
+};

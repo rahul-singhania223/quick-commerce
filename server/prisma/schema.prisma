@@ -29,22 +29,164 @@ model Zone {
 }
 
 model Store {
-  id         String       @id @default(uuid())
-  user_id    String
-  zone_id    String
-  name       String
-  owner_name String
-  phone      String
-  gst_number String
-  address    String
-  lattitude  Decimal
-  longitude  Decimal
-  verified   Boolean      @default(false)
-  status     Store_Status @default(OPEN)
-  created_at DateTime     @default(now())
-  updated_at DateTime     @updatedAt
-  User       User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  Zone       Zone?        @relation(fields: [zone_id], references: [id])
+  id            String         @id @default(uuid())
+  user_id       String
+  name          String
+  logo          String
+  owner_name    String
+  phone         String
+  address       String
+  zone_id       String
+  latitude      Decimal
+  longitude     Decimal
+  gst           String
+  fssai         String?
+  adhaar        String
+  pan           String
+  inside_photo  String
+  front_photo   String
+  verified      Boolean        @default(false)
+  status        Store_Status   @default(OPEN)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  User          User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  Zone          Zone?          @relation(fields: [zone_id], references: [id])
+  storeProducts StoreProduct[]
+}
+
+model Product {
+  id String @id @default(uuid())
+
+  name        String
+  slug        String  @unique
+  description String?
+
+  category_id String
+  brand_id    String?
+
+  is_active Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  variants ProductVariant[]
+  category Category         @relation(fields: [category_id], references: [id])
+  brand    Brand?           @relation(fields: [brand_id], references: [id])
+
+  @@index([name])
+  @@index([slug])
+  @@index([category_id])
+  @@index([brand_id])
+  @@index([is_active])
+}
+
+model Category {
+  id String @id @default(uuid())
+
+  name String @unique
+  slug String @unique
+
+  parent_id String?
+  level     Int // 0 = root, 1 = child, 2 = sub-child
+
+  image       String?
+  description String?
+
+  is_active  Boolean @default(true)
+  sort_order Int     @default(0)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryTree", fields: [parent_id], references: [id])
+  children Category[] @relation("CategoryTree")
+
+  products Product[]
+
+  @@index([parent_id])
+  @@index([slug])
+  @@index([is_active])
+}
+
+model Brand {
+  id String @id @default(uuid())
+
+  name String @unique
+  slug String @unique
+
+  logo        String?
+  description String?
+
+  is_active Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  products Product[]
+
+  @@index([slug])
+  @@index([is_active])
+}
+
+model ProductVariant {
+  id String @id @default(uuid())
+
+  product_id String
+
+  sku  String @unique
+  name String // e.g. "1L", "500ml", "Pack of 6"
+
+  weight Decimal?
+  unit   String? // g, kg, ml, l, pcs
+
+  mrp   Decimal // printed MRP
+  image String?
+
+  is_active Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  product        Product        @relation(fields: [product_id], references: [id])
+  store_products StoreProduct[]
+}
+
+model StoreProduct {
+  id String @id @default(uuid())
+
+  store_id   String
+  variant_id String
+
+  selling_price    Decimal
+  discount_percent Decimal? @default(0)
+
+  is_available Boolean @default(true)
+  is_listed    Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  inventory Inventory?
+
+  store     Store          @relation(fields: [store_id], references: [id])
+  variant   ProductVariant @relation(fields: [variant_id], references: [id])
+
+  @@unique([store_id, variant_id])
+}
+
+model Inventory {
+  id String @id @default(uuid())
+
+  store_product_id String @unique
+
+  stock_quantity    Int
+  reserved_quantity Int @default(0)
+
+  low_stock_alert Int @default(5)
+
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+
+  store_product StoreProduct @relation(fields: [store_product_id], references: [id], onDelete: Cascade)
 }
 
 enum Role {

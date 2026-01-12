@@ -9,14 +9,14 @@ import {
 } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
 import { getOTP, getOTPMetaData, verifyOTP } from "@/quries/auth.query";
-import { ErrorResponse, SuccessResponse } from "@/types/request.type";
+import { ErrorResponse, SuccessResponse, OtpMeta } from "@/types/types";
 import { Loader2, SearchCheck } from "lucide-react";
 import Link from "next/link";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { set } from "zod";
 import Message from "./message";
-import { OtpMeta } from "@/types/otp.type";
+import PageLoader from "@/components/page-loader";
 
 export default function OTPForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,17 +38,20 @@ export default function OTPForm() {
     e.preventDefault();
     setError("");
 
-    if(!otpMeta) return
+    if (!otpMeta) return;
     if (isSubmitting) return;
     if (!phone) return setError("Phone number is required!");
     if (otp.length === 0) return setError("OTP is required!");
     if (otp.length !== 6) return setError("Invalid OTP!");
 
-
     try {
       setIsSubmitting(true);
-      const res = await verifyOTP({ OTP: otp, phone: otpMeta.phone, session_id: otpMeta.session_id });
-      return router.push("/");
+      const res = await verifyOTP({
+        OTP: otp,
+        phone: otpMeta.phone,
+        session_id: otpMeta.session_id,
+      });
+      return router.push("/store");
     } catch (error) {
       const errorData = error as ErrorResponse;
       setError(errorData.message);
@@ -115,75 +118,64 @@ export default function OTPForm() {
     return () => clearInterval(interval);
   }, [otpMeta]);
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center">
-        <Loader2 className="animate-spin text-muted-foreground" />
-      </div>
-    );
+  if (loading) return <PageLoader />;
 
   if (globalError)
     return (
-      <div className="w-full flex flex-col space-y-5 items-center justify-center">
+      <div className="w-full flex flex-col space-y-5 items-center justify-center max-w-md">
         <h2 className="text-xl font-semibold text-red-500">{globalError}</h2>
-        <Button type="button" onClick={() => router.push("/auth")}>
+        <Button
+          type="button"
+          onClick={() => router.push("/auth")}
+          className="h-16 text-lg lg:text-base lg:h-13 w-full rounded-2xl text-white mt-6 cursor-pointer transition-all active:scale-95 z-100"
+        >
           Get New OTP
         </Button>
       </div>
     );
 
   return (
-    <>
+    <div className="w-full h-full flex flex-col items-center justify-center">
       <Message />
 
       <form
         onSubmit={onSubmit}
-        className="max-w-md mx-auto flex flex-col items-center"
+        className="max-w-md mx-auto flex flex-col items-center w-full"
       >
         <InputOTP
           value={otp}
           onChange={(val) => setOtp(val)}
           maxLength={6}
-          className="flex items-center"
+          className="flex! items-center w-full! justify-between!"
         >
-          <InputOTPGroup>
-            <InputOTPSlot
-              index={0}
-              className="bg-white text-xl font-semibold h-13 w-13"
-            />
-            <InputOTPSlot
-              index={1}
-              className="bg-white text-xl font-semibold h-13 w-13"
-            />
-            <InputOTPSlot
-              index={2}
-              className="bg-white text-xl font-semibold h-13 w-13"
-            />
-          </InputOTPGroup>
-          <InputOTPSeparator />
+          <InputOTPSlot
+            index={0}
+            className="bg-white text-xl font-semibold h-16 w-16 shadow-none rounded-xl!"
+          />
+          <InputOTPSlot
+            index={1}
+            className="bg-white text-xl font-semibold  h-16 w-16 shadow-none rounded-xl!"
+          />
+          <InputOTPSlot
+            index={2}
+            className="bg-white text-xl font-semibold  h-16 w-16 shadow-none rounded-xl!"
+          />
 
-          <InputOTPGroup>
-            <InputOTPSlot
-              index={3}
-              className="bg-white text-xl font-semibold h-13 w-13"
-            />
-            <InputOTPSlot
-              index={4}
-              className="bg-white text-xl font-semibold h-13 w-13"
-            />
-            <InputOTPSlot
-              index={5}
-              className="bg-white text-xl font-semibold h-13 w-13"
-            />
-          </InputOTPGroup>
+          <InputOTPSlot
+            index={3}
+            className="bg-white text-xl font-semibold  h-16 w-16 shadow-none rounded-xl!"
+          />
         </InputOTP>
         <Button
           type="button"
           onClick={resendOTP}
           variant={"link"}
-          className={cn("mr-auto  text-muted-foreground font-medium hover:no-underline", {
-            "text-blue-500 hover:underline! cursor-pointer": timeLeft === 0,
-          })}
+          className={cn(
+            "mr-auto  text-muted-foreground font-medium hover:no-underline text-base mt-2",
+            {
+              "text-blue-500 hover:underline! cursor-pointer": timeLeft === 0,
+            }
+          )}
         >
           {timeLeft > 0 ? "00:" + String(timeLeft).padStart(2, "0") : "Resend"}
         </Button>
@@ -199,17 +191,7 @@ export default function OTPForm() {
           )}
           Verify OTP
         </Button>{" "}
-        <p className="text-sm lg:text-xs text-body text-center mt-6">
-          By continuing, you agree to our{" "}
-          <Link href={"#"} className="text-blue-500 hover:underline">
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link href={"#"} className="text-blue-500 hover:underline">
-            Privacy Policy
-          </Link>
-        </p>
       </form>
-    </>
+    </div>
   );
 }

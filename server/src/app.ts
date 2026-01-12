@@ -1,5 +1,15 @@
 import express, { NextFunction, type Request, type Response } from "express";
-import { storeRouter, userRouter, zoneRouter } from "./routers/index.ts";
+import {
+  brandRouter,
+  categoryRouter,
+  inventoryRouter,
+  productRouter,
+  productVariantRouter,
+  storeProductRouter,
+  storeRouter,
+  userRouter,
+  zoneRouter,
+} from "./routers/index.ts";
 import { ApiError } from "./utils/api-error.ts";
 import apiErrorHandler from "./middleware/error.middleware.ts";
 import cookieParser from "cookie-parser";
@@ -25,15 +35,15 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-app.get("/", (req: Request, res: Response) => {
-  const userAgent = req.headers["user-agent"];
-  res.json(userAgent);
-});
-
-
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/store", storeRouter);
 app.use("/api/v1/zone", zoneRouter);
+app.use("/api/v1/brand", brandRouter);
+app.use("/api/v1/category", categoryRouter);
+app.use("/api/v1/product", productRouter);
+app.use("/api/v1/product-variant", productVariantRouter);
+app.use("/api/v1/store-product", storeProductRouter);
+app.use("/api/v1/inventory", inventoryRouter);
 
 // catch unkown routes
 app.use((req: Request, res: Response, next: NextFunction) => {

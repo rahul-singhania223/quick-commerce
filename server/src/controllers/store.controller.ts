@@ -98,27 +98,39 @@ export const createStore = asyncHandler(
     if (!dbUser) return next(new ApiError(404, "NOT_FOUND", "User not found!"));
 
     const {
-      zone_id,
       name,
+      logo,
       owner_name,
-      gst_number,
+      zone_id,
       address,
-      lattitude,
+      latitude,
       longitude,
+      gst,
+      fssai,
+      adhaar,
+      pan,
+      inside_photo,
+      front_photo,
     } = data;
 
     const newStoreData: Store = {
       id: v4(),
       user_id: req.user?.id as string,
-      zone_id,
       name,
+      logo,
       owner_name,
       phone: dbUser.phone,
-      gst_number,
+      zone_id,
       address,
-      verified: false,
-      lattitude: Decimal(lattitude),
+      latitude: Decimal(latitude),
       longitude: Decimal(longitude),
+      gst,
+      fssai: fssai || null,
+      adhaar,
+      pan,
+      inside_photo,
+      front_photo,
+      verified: false,
       status: "OPEN",
       created_at: new Date(),
       updated_at: new Date(),
@@ -150,7 +162,7 @@ export const createStore = asyncHandler(
 // UPDATE STORE
 export const updateStore = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const data = req.body as z.infer<typeof createStoreSchema>;
+    const data = req.body as Partial<Store>;
     if (!data)
       return next(
         new ApiError(400, "INVALID_DATA", "All input fields are required!")
@@ -165,27 +177,9 @@ export const updateStore = asyncHandler(
     const dbUser = await getUserById(user.id as string);
     if (!dbUser) return next(new ApiError(404, "NOT_FOUND", "User not found!"));
 
-    const {
-      zone_id,
-      name,
-      owner_name,
-      gst_number,
-      address,
-      lattitude,
-      longitude,
-    } = data;
-
     const storeData: Store = {
       ...store,
-      zone_id,
-      name,
-      owner_name,
-      phone: dbUser.phone,
-      gst_number,
-      address,
-      lattitude: Decimal(lattitude),
-      longitude: Decimal(longitude),
-      updated_at: new Date(),
+      ...data,
     };
 
     const updatedStore = await updateDbStore(store.id, storeData);

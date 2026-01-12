@@ -16,6 +16,56 @@ import {
   updateZone as updateDbZone,
   deleteZone as deleteDbZone,
 } from "../models/zone.model.ts";
+import { isPointInPolygon } from "../utils/location.util.ts";
+
+// GET ZONE BY POSITION
+export const getZoneByPosition = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const lng = Number(req.query.lng);
+    const lat = Number(req.query.lat);
+
+    if (Number.isNaN(lng) || Number.isNaN(lat)) {
+      return next(
+        new ApiError(400, "INVALID_DATA", "Valid lng and lat are required!")
+      );
+    }
+
+    const zones = await fetchAllZones({ isActive: true });
+    if (!zones || zones.length === 0) {
+      return next(new ApiError(404, "DB_ERROR", "No zones found"));
+    }
+
+    const point: [number, number] = [lng, lat];
+
+    const matchedZone = zones.find((zone: Zone) => {
+      const boundary = zone.boundary as any;
+
+      if (!boundary || boundary.type !== "Polygon") return false;
+
+      const polygon = boundary.coordinates[0] as [number, number][];
+      return isPointInPolygon(point, polygon);
+    });
+
+    console.log(matchedZone)
+
+    if (!matchedZone) {
+      return res.status(200).json(
+        new APIResponse("success", "No zone identified", {
+          success: false,
+          message: "Currently we do not operate in your area!",
+        })
+      );
+    }
+
+    return res.status(200).json(
+      new APIResponse("success", "Zone identified successfully", {
+        success: true,
+        zone: { id: matchedZone.id, name: matchedZone.name },
+        message: "We are operating in your area!",
+      })
+    );
+  }
+);
 
 // GET ALL ZONES
 export const getAllZones = asyncHandler(

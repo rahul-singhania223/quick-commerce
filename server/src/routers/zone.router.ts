@@ -9,12 +9,16 @@ import {
   deleteZone,
   getAllZones,
   getZone,
+  getZoneByPosition,
   updateZone,
 } from "../controllers/zone.controller.ts";
 
 import { createZoneSchema } from "../schemas/zone.schema.ts";
 
 const router = Router();
+
+// GET ZONE BY POSITION
+router.get("/position", getZoneByPosition);
 
 // GET ALL ZONES
 router.get("/", getAllZones);

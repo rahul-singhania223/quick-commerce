@@ -1,0 +1,18 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Header from "../components/header";
+import CreateStoreForm from "./form";
+import { Button } from "@/components/ui/button";
+import Head from "next/head";
+import FormContainer from "./form-container";
+
+export default function CreatePage() {
+  return (
+    <div className="flex flex-col">
+      <Header />
+
+      <div className="p-0 lg:p-6 min-h-[calc(100vh-64px)] flex flex-col">
+        <FormContainer />
+      </div>
+    </div>
+  );
+}

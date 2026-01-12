@@ -7,7 +7,11 @@ import { v4, validate as isValidUUID } from "uuid";
 import redis from "../configs/redis.config.ts";
 import sendOTP from "../utils/send-otp.ts";
 import bcrypt from "bcrypt";
-import { createUser, getUserByPhone } from "../models/user.model.ts";
+import {
+  createUser,
+  getUserById,
+  getUserByPhone,
+} from "../models/user.model.ts";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -264,5 +268,41 @@ export const getOTPStatus = asyncHandler(
         created_at: data.created_at,
       })
     );
+  }
+);
+
+// LOG OUT
+export const logout = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    if (!user) return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
+
+    const sessionId = `session:${user.id}:${req.headers["user-agent"]}`;
+
+    await redis.del(sessionId);
+
+    return res
+      .clearCookie("refresh_token")
+      .clearCookie("access_token")
+      .json(new APIResponse("SUCCESS", "You are logged out successfully!"));
+  }
+);
+
+// GET AUTH USER
+export const getAuthUser = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    if (!user) return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
+
+    const dbUser = await getUserById(user.id as string);
+    if (!dbUser) return next(new ApiError(404, "NOT_FOUND", "User not found!"));
+
+    return res
+      .status(200)
+      .json(
+        new APIResponse("SUCCESS", "Auth user fetched successfully!", {
+          user: dbUser,
+        })
+      );
   }
 );

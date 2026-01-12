@@ -14,7 +14,6 @@ import {
 } from "../controllers/store.controller.ts";
 import { validateForm } from "../middleware/validate.middleware.ts";
 import { createStoreSchema } from "../schemas/store.schema.ts";
-// import { validateForm } from "../middleware/validate.middleware.ts";
 
 const router = Router();
 
@@ -38,7 +37,7 @@ router.post(
 // UPDATE STORE
 router.put(
   "/update/:id",
-  validateForm(createStoreSchema),
+  // validateForm(createStoreSchema),
   authorizeUser,
   authorizeStoreOwner,
   updateStore
