@@ -35,6 +35,11 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
+// TODO: delete this
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello World!");
+});
+
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/store", storeRouter);
 app.use("/api/v1/zone", zoneRouter);
