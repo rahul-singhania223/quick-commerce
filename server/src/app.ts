@@ -20,6 +20,7 @@ config();
 const app = express();
 
 import cors, { CorsRequest } from "cors";
+import path from "path";
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS!.split(" ");
 
@@ -34,6 +35,12 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());
+
+
+app.use(
+  "/favicon.ico",
+  express.static(path.join(process.cwd(), "public/favicon.ico"))
+);
 
 // TODO: delete this
 app.get("/", (req: Request, res: Response) => {
