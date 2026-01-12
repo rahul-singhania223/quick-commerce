@@ -1,14 +1,15 @@
 // tsconfig.json
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "commonjs",
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
     "rootDir": "src",
-    "outDir": "./dist",
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
