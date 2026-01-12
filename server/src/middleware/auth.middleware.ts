@@ -8,7 +8,6 @@ import {
   generateRefreshToken,
 } from "../utils/token.util.ts";
 import { getStore } from "../models/store.model.ts";
-import { Store } from "../generated/prisma/client.ts";
 import { getUserById } from "../models/user.model.ts";
 import { validate as isValidUUID } from "uuid";
 
