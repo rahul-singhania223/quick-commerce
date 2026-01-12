@@ -9,9 +9,9 @@ import {
   storeRouter,
   userRouter,
   zoneRouter,
-} from "./routers/index.ts";
-import { ApiError } from "./utils/api-error.ts";
-import apiErrorHandler from "./middleware/error.middleware.ts";
+} from "./routers/index.js";
+import { ApiError } from "./utils/api-error.js";
+import apiErrorHandler from "./middleware/error.middleware.js";
 import cookieParser from "cookie-parser";
 import { config } from "dotenv";
 
