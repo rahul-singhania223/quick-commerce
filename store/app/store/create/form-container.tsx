@@ -4,7 +4,7 @@ import { Form, FormField, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import z, { success } from "zod";
+import z from "zod";
 import ImageUploader from "./image-uploader";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,11 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useStoreForm } from "@/zustand-store/storeForm.store";
-import {
-  createStoreFormSchema,
-  StoreFormData,
-  StoreFormStep,
-} from "@/schema/store.schema";
+import { createStoreFormSchema } from "@/schema/store.schema";
 import { useUser } from "@/zustand-store/user.store";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -28,10 +24,8 @@ import { AxiosError } from "axios";
 import { ErrorResponse, Store, SuccessResponse, Zone } from "@/types/types";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Label } from "@radix-ui/react-select";
 import LocationInput from "./location-input";
 import { zoneQuery } from "@/quries/zone.query";
-import { cn } from "@/lib/utils";
 
 function Review() {
   const [submitting, setSubmitting] = useState(false);
@@ -431,7 +425,7 @@ function Location() {
     if (selectedZone && !selectedZone.success) return;
 
     form.setValue("zone_id", selectedZone.zone.id);
-    console.log(selectedZone)
+    console.log(selectedZone);
   }, [selectedZone]);
 
   if (step !== "LOCATION") return null;
@@ -760,7 +754,7 @@ function Basic() {
 }
 
 export default function CreateStoreForm() {
-  const { step, data } = useStoreForm();
+  const { step } = useStoreForm();
 
   return (
     <div className="min-h-full! w-full flex-1 bg-white shadow rounded-lg p-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { HelpCircle, Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { getUser, logout } from "@/quries/auth.query";

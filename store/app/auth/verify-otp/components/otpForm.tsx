@@ -1,24 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
+import { InputOTP, InputOTPSlot } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
 import { getOTP, getOTPMetaData, verifyOTP } from "@/quries/auth.query";
 import { ErrorResponse, SuccessResponse, OtpMeta } from "@/types/types";
-import { Loader2, SearchCheck } from "lucide-react";
-import Link from "next/link";
-import { redirect, useRouter, useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { set } from "zod";
 import Message from "./message";
 import PageLoader from "@/components/page-loader";
 
-export default function OTPForm() {
+interface Props {
+  session_id: string | undefined;
+  phone: string | undefined;
+}
+
+
+export default function OTPForm({ session_id, phone }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [otp, setOtp] = useState("");
@@ -30,9 +29,8 @@ export default function OTPForm() {
 
   const router = useRouter();
 
-  const searchParams = useSearchParams();
-  const session_id = searchParams.get("session_id");
-  const phone = searchParams.get("phone");
+  console.log(session_id, phone)
+
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
