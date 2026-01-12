@@ -57,14 +57,16 @@ export const createBrand = asyncHandler(
       );
 
     const { name, logo, description, is_active } = data;
+
+    // @ts-ignore
     const slug = slugify.default(name, {
-      replacement: "-", // replace spaces with replacement character, defaults to `-`
-      remove: undefined, // remove characters that match regex, defaults to `undefined`
-      lower: true, // convert to lower case, defaults to `false`
-      strict: true, // strip special characters except replacement, defaults to `false`
+      replacement: "-",
+      remove: undefined,
+      lower: true,
+      strict: true,
     });
 
-    const existingBrand: Brand = await fetchBrand({ name });
+    const existingBrand: Brand  | null = await fetchBrand({ name });
     if (existingBrand)
       return next(new ApiError(400, "DB_ERROR", "Brand already exists!"));
 
@@ -104,17 +106,18 @@ export const updateBrand = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid brand ID!"));
 
-    const existingBrand: Brand = await fetchBrand({ id });
+    const existingBrand: Brand | null = await fetchBrand({ id });
     if (!existingBrand)
       return next(new ApiError(404, "DB_ERROR", "Brand not found!"));
 
     const { name } = data;
 
     if (name && name !== existingBrand.name) {
-      const existingBrandWithNewName: Brand = await fetchBrand({ name });
+      const existingBrandWithNewName: Brand | null = await fetchBrand({ name });
       if (existingBrandWithNewName)
         return next(new ApiError(400, "DB_ERROR", "Brand already exists!"));
 
+      // @ts-ignore
       data.slug = slugify.default(name, {
         replacement: "-", // replace spaces with replacement character, defaults to `-`
         remove: undefined, // remove characters that match regex, defaults to `undefined`
@@ -151,7 +154,7 @@ export const deleteBrand = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid brand ID!"));
 
-    const existingBrand: Brand = await fetchBrand({ id });
+    const existingBrand: Brand | null = await fetchBrand({ id });
     if (!existingBrand)
       return next(new ApiError(404, "DB_ERROR", "Brand not found!"));
 

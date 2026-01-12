@@ -67,11 +67,12 @@ export const createCategory = asyncHandler(
     const { name, parent_id, image, description, sort_order, is_active } = data;
 
     // check if category name already exists
-    const existingCategory: Category = await fetchCategory({ name });
+    const existingCategory: Category | null = await fetchCategory({ name });
     if (existingCategory)
       return next(new ApiError(400, "DB_ERROR", "Category already exists!"));
 
     // create slug
+    // @ts-ignore
     const slug = slugify.default(name, {
       replacement: "-",
       remove: undefined,
@@ -140,19 +141,20 @@ export const updateCategory = asyncHandler(
         new ApiError(400, "INVALID_DATA", "All input fields are required!")
       );
 
-    const existingCategory: Category = await fetchCategory({ id });
+    const existingCategory: Category | null = await fetchCategory({ id });
     if (!existingCategory)
       return next(new ApiError(404, "DB_ERROR", "Category not found!"));
 
     const { name } = data;
 
     if (name && name !== existingCategory.name) {
-      const existingCategoryWithNewName: Category = await fetchCategory({
+      const existingCategoryWithNewName: Category | null = await fetchCategory({
         name,
       });
       if (existingCategoryWithNewName)
         return next(new ApiError(400, "DB_ERROR", "Category already exists!"));
 
+      // @ts-ignore
       data.slug = slugify.default(name, {
         replacement: "-",
         remove: undefined,
@@ -234,7 +236,7 @@ export const deleteCategory = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid category ID!"));
 
-    const existingCategory: Category = await fetchCategory({ id });
+    const existingCategory: Category | null = await fetchCategory({ id });
     if (!existingCategory)
       return next(new ApiError(404, "DB_ERROR", "Category not found!"));
 

@@ -183,7 +183,7 @@ export const deleteProductVariant = asyncHandler(
         new ApiError(400, "INVALID_DATA", "Invalid product variant ID!")
       );
 
-    const existingProductVariant: ProductVariant = await fetchProductVariant({
+    const existingProductVariant: ProductVariant | null = await fetchProductVariant({
       id,
     });
     if (!existingProductVariant)

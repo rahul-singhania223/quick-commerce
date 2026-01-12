@@ -8,7 +8,7 @@ import { NextFunction, Request, Response } from "express";
 import { ApiError } from "../utils/api-error.ts";
 import z from "zod";
 import { createZoneSchema } from "../schemas/zone.schema.ts";
-import { Zone } from "../generated/prisma/client.ts";
+import { Prisma, Zone } from "../generated/prisma/client.ts";
 import { v4, validate as isValidUUID } from "uuid";
 import {
   createZone as createDbZone,
@@ -46,7 +46,7 @@ export const getZoneByPosition = asyncHandler(
       return isPointInPolygon(point, polygon);
     });
 
-    console.log(matchedZone)
+    console.log(matchedZone);
 
     if (!matchedZone) {
       return res.status(200).json(
@@ -108,13 +108,10 @@ export const createZone = asyncHandler(
 
     const { name, boundary } = data;
 
-    const newZoneData: Zone = {
-      id: v4(),
+    const newZoneData: Prisma.ZoneCreateInput = {
       name,
       boundary,
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
 
     const newZone = await createDbZone(newZoneData);
@@ -144,10 +141,9 @@ export const updateZone = asyncHandler(
     if (!existingZone)
       return next(new ApiError(404, "DB_ERROR", "Zone not found!"));
 
-    const updatedZoneData: Zone = {
+    const updatedZoneData: Prisma.ZoneUpdateInput = {
       ...existingZone,
       ...data,
-      updatedAt: new Date(),
     };
 
     const updatedZone = await updateDbZone(zoneId, updatedZoneData);

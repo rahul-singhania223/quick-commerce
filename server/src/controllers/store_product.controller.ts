@@ -89,7 +89,7 @@ export const createStoreProduct = asyncHandler(
     if (!store) return next(new ApiError(404, "NOT_FOUND", "Store not found!"));
 
     // product variant exists
-    const existingProductVariant: ProductVariant = await fetchProductVariant({
+    const existingProductVariant = await fetchProductVariant({
       id: storeProduct.variant_id,
     });
     if (!existingProductVariant)
@@ -225,7 +225,7 @@ export const updateStoreProduct = asyncHandler(
       return next(new ApiError(404, "DB_ERROR", "Inventory not found!"));
 
     // product variant
-    let productVariant: ProductVariant;
+    let productVariant: ProductVariant | null;
 
     if (data.storeProduct.variant_id) {
       productVariant = await fetchProductVariant({
@@ -269,7 +269,6 @@ export const updateStoreProduct = asyncHandler(
 
     const updateStoreProductData: Prisma.StoreProductUpdateInput = {
       ...storeProduct,
-      store_id: storeProduct.store_id,
       selling_price: data.storeProduct.selling_price
         ? new Prisma.Decimal(data.storeProduct.selling_price)
         : storeProduct.selling_price,
@@ -279,7 +278,7 @@ export const updateStoreProduct = asyncHandler(
       updated_at: new Date(),
     };
 
-    const updatedStoreProduct: StoreProduct = await updateDbStoreProduct(
+    const updatedStoreProduct: StoreProduct | null = await updateDbStoreProduct(
       storeProduct.id,
       updateStoreProductData
     );
@@ -312,7 +311,7 @@ export const deleteStoreProduct = asyncHandler(
     if (!storeProductId || !isValidUUID(storeProductId))
       return next(new ApiError(400, "INVALID_DATA", "Invalid product ID!"));
 
-    const existingStoreProduct: StoreProduct = await fetchStoreProduct(storeProductId);
+    const existingStoreProduct: StoreProduct | null = await fetchStoreProduct(storeProductId);
     if (!existingStoreProduct)
       return next(new ApiError(404, "DB_ERROR", "Store product not found!"));
 

@@ -2,9 +2,9 @@ import db from "../configs/db.config.ts";
 import { Prisma, Zone } from "../generated/prisma/client.ts";
 
 // CREATE ZONE
-export const createZone = async (data: Zone) => {
+export const createZone = async (data: Prisma.ZoneCreateInput) => {
   try {
-    const zone = await db.zone.create({ data });
+    const zone = await db.zone.create({ data: data });
     return zone;
   } catch (error) {
     return null;
@@ -32,7 +32,7 @@ export const getAllZones = async (params?: Prisma.ZoneWhereInput) => {
 };
 
 // UPDATE ZONE
-export const updateZone = async (id: string, data: Zone) => {
+export const updateZone = async (id: string, data: Prisma.ZoneUpdateInput) => {
   try {
     const zone = await db.zone.update({ where: { id }, data });
     return zone;

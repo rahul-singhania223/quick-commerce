@@ -19,7 +19,7 @@ export const getInventoryById = asyncHandler(
     if (!inventoryId || !isValidUUID(inventoryId))
       return next(new ApiError(400, "INVALID_DATA", "Invalid inventory ID!"));
 
-    const inventory: Inventory = await fetchInventory(inventoryId);
+    const inventory: Inventory | null = await fetchInventory(inventoryId);
     if (!inventory)
       return next(new ApiError(404, "DB_ERROR", "Inventory not found!"));
 
@@ -38,7 +38,7 @@ export const updateInventory = asyncHandler(
     if (!inventoryId || !isValidUUID(inventoryId))
       return next(new ApiError(400, "INVALID_DATA", "Invalid inventory ID!"));
 
-    const inventory: Inventory = await fetchInventory(inventoryId);
+    const inventory: Inventory | null = await fetchInventory(inventoryId);
     if (!inventory)
       return next(new ApiError(404, "DB_ERROR", "Inventory not found!"));
 

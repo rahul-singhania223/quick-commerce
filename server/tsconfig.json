@@ -1,14 +1,17 @@
 // tsconfig.json
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "target": "ES2023",
+    "target": "ES6",
+    "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "rootDir": "src",
+    "outDir": "./dist",
     "allowImportingTsExtensions": true,
-    "allowSyntheticDefaultImports": true,
-    "noEmit": true 
+    "noEmit": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

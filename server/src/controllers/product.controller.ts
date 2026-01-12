@@ -95,7 +95,7 @@ export const createProduct = asyncHandler(
     const { name, description, category_id, brand_id, is_active } = data;
 
     // check if category exists
-    const existingCategory: Category = await fetchCategory({ id: category_id });
+    const existingCategory: Category | null = await fetchCategory({ id: category_id });
     if (!existingCategory)
       return next(new ApiError(400, "DB_ERROR", "Category not found!"));
 
@@ -119,6 +119,7 @@ export const createProduct = asyncHandler(
     };
 
     // create slug
+    // @ts-ignore
     newProductData.slug = slugify.default(newProductData.name, {
       replacement: "-",
       remove: undefined,
@@ -161,7 +162,7 @@ export const updateProduct = asyncHandler(
 
     // check if category exists
     if (data.category_id) {
-      const existingCategory: Category = await fetchCategory({
+      const existingCategory: Category | null = await fetchCategory({
         id: data.category_id,
       });
       if (!existingCategory)
@@ -177,6 +178,7 @@ export const updateProduct = asyncHandler(
 
     // update slug
     if (data.name && data.name !== existingProduct.name) {
+      // @ts-ignore
       data.slug = slugify.default(data.name, {
         replacement: "-",
         remove: undefined,
@@ -215,7 +217,7 @@ export const deleteProduct = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid product ID!"));
 
-    const existingProduct: Product = await fetchProduct({ id });
+    const existingProduct: Product | null = await fetchProduct({ id });
     if (!existingProduct)
       return next(new ApiError(404, "DB_ERROR", "Product not found!"));
 

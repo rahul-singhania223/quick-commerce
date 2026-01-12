@@ -83,43 +83,45 @@ export const createInventory = async (data: Inventory) => {
 // get all store inventory
 export const getStoreInventory = async (storeId: string) => {
   try {
-    const inventory = await db.inventory.findMany({
-      where: { store_id: storeId },
-      include: {
-        store_product: {
-          select: {
-            discount_percent: true,
-            selling_price: true,
-            is_listed: true,
-            is_available: true,
-            store_id: true,
-            variant: {
-              select: {
-                mrp: true,
-                name: true,
-                image: true,
-                product: {
-                  select: {
-                    name: true,
-                    category: {
-                      select: {
-                        name: true,
-                      },
-                    },
-                    brand: {
-                      select: {
-                        name: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-    return inventory;
+    // TODO: fix
+    
+    // const inventory = await db.inventory.findMany({
+    //   where: { store_id: storeId },
+    //   include: {
+    //     store_product: {
+    //       select: {
+    //         discount_percent: true,
+    //         selling_price: true,
+    //         is_listed: true,
+    //         is_available: true,
+    //         store_id: true,
+    //         variant: {
+    //           select: {
+    //             mrp: true,
+    //             name: true,
+    //             image: true,
+    //             product: {
+    //               select: {
+    //                 name: true,
+    //                 category: {
+    //                   select: {
+    //                     name: true,
+    //                   },
+    //                 },
+    //                 brand: {
+    //                   select: {
+    //                     name: true,
+    //                   },
+    //                 },
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
+    return null;
   } catch (error) {
     return null;
   }
