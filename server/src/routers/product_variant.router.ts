@@ -5,13 +5,13 @@ import {
   getAllProductVariants,
   getProductVariant,
   updateProductVariant,
-} from "../controllers/product_variant.controller.ts";
+} from "../controllers/product_variant.controller.js";
 import {
   authorizeAdmin,
   authorizeUser,
-} from "../middleware/auth.middleware.ts";
-import { validateForm } from "../middleware/validate.middleware.ts";
-import { createProductVariantSchema } from "../schemas/product_variant.schema.ts";
+} from "../middleware/auth.middleware.js";
+import { validateForm } from "../middleware/validate.middleware.js";
+import { createProductVariantSchema } from "../schemas/product_variant.schema.js";
 
 const router = Router();
 

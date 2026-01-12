@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from "express";
-import asyncHandler from "../utils/async-handler.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
-import { ApiError } from "../utils/api-error.ts";
-import { categoryFormSchema } from "../schemas/category.schema.ts";
+import asyncHandler from "../utils/async-handler.js";
+import { APIResponse } from "../utils/api-response.util.js";
+import { ApiError } from "../utils/api-error.js";
+import { categoryFormSchema } from "../schemas/category.schema.js";
 import z from "zod";
 import slugify from "slugify";
 import { v4, validate as isValidUUID } from "uuid";
-import { Category } from "../generated/prisma/client.ts";
+import { Category } from "../generated/prisma/client.js";
 import {
   getAllCategories as fetchAllCategories,
   getCategory as fetchCategory,
   createCategory as createDbCategory,
   updateCategory as updateDbCategory,
   deleteCategory as deleteDbCategory,
-} from "../models/category.model.ts";
+} from "../models/category.model.js";
 
 // GET ALL CATEGORIES
 export const getAllCategories = asyncHandler(

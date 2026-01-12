@@ -1,5 +1,5 @@
-import db from "../configs/db.config.ts";
-import { Brand } from "../generated/prisma/client.ts";
+import db from "../configs/db.config.js";
+import { Brand } from "../generated/prisma/client.js";
 
 // create brand
 export const createBrand = async (data: Brand) => {

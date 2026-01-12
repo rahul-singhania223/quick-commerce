@@ -1,16 +1,16 @@
 import { Request, Response, NextFunction } from "express";
-import asyncHandler from "../utils/async-handler.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
+import asyncHandler from "../utils/async-handler.js";
+import { APIResponse } from "../utils/api-response.util.js";
 import { v4, validate as isValidUUID } from "uuid";
-import { ApiError } from "../utils/api-error.ts";
-import { createStoreProductSchema } from "../schemas/store_product.schema.ts";
+import { ApiError } from "../utils/api-error.js";
+import { createStoreProductSchema } from "../schemas/store_product.schema.js";
 import z from "zod";
 import {
   Inventory,
   Prisma,
   ProductVariant,
   StoreProduct,
-} from "../generated/prisma/client.ts";
+} from "../generated/prisma/client.js";
 import {
   createStoreProduct as createDbStoreProduct,
   getAllStoreProducts as fetchAllStoreProducts,
@@ -18,15 +18,15 @@ import {
   updateStoreProduct as updateDbStoreProduct,
   getStoreProductWithVariantAndStore as fetchStoreProductWithVariantAndStore,
   deleteStoreProduct as deleteDbStoreProduct,
-} from "../models/store_product.model.ts";
+} from "../models/store_product.model.js";
 
-import { getProductVariant as fetchProductVariant } from "../models/product_variant.model.ts";
+import { getProductVariant as fetchProductVariant } from "../models/product_variant.model.js";
 
 import {
   createInventory as createDbInventory,
   updateInventory as updateDbInventory,
   getInventory as fetchInventory,
-} from "../models/inventory.model.ts";
+} from "../models/inventory.model.js";
 
 // GET ALL STORE PRODUCTS
 export const getAllStoreProducts = asyncHandler(

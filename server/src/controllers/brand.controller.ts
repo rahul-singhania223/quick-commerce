@@ -1,18 +1,18 @@
 import { NextFunction, Request, Response } from "express";
-import { brandFormSchema } from "../schemas/brand.schema.ts";
+import { brandFormSchema } from "../schemas/brand.schema.js";
 import z from "zod";
-import { ApiError } from "../utils/api-error.ts";
-import asyncHandler from "../utils/async-handler.ts";
+import { ApiError } from "../utils/api-error.js";
+import asyncHandler from "../utils/async-handler.js";
 import { v4, validate as isValidUUID } from "uuid";
-import { Brand } from "../generated/prisma/client.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
+import { Brand } from "../generated/prisma/client.js";
+import { APIResponse } from "../utils/api-response.util.js";
 import {
   createBrand as createDbBrand,
   getAllBrands as fetchAllBrands,
   getBrand as fetchBrand,
   updateBrand as updateDbBrand,
   deleteBrand as deleteDbBrand,
-} from "../models/brand.model.ts";
+} from "../models/brand.model.js";
 
 import slugify from "slugify";
 

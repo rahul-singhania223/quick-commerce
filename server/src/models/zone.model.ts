@@ -1,5 +1,5 @@
-import db from "../configs/db.config.ts";
-import { Prisma, Zone } from "../generated/prisma/client.ts";
+import db from "../configs/db.config.js";
+import { Prisma, Zone } from "../generated/prisma/client.js";
 
 // CREATE ZONE
 export const createZone = async (data: Prisma.ZoneCreateInput) => {

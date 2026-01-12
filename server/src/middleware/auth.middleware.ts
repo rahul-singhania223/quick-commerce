@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import asyncHandler from "../utils/async-handler.ts";
-import { ApiError } from "../utils/api-error.ts";
+import asyncHandler from "../utils/async-handler.js";
+import { ApiError } from "../utils/api-error.js";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import redis from "../configs/redis.config.ts";
+import redis from "../configs/redis.config.js";
 import {
   generateAccessToken,
   generateRefreshToken,
-} from "../utils/token.util.ts";
-import { getStore } from "../models/store.model.ts";
-import { getUserById } from "../models/user.model.ts";
+} from "../utils/token.util.js";
+import { getStore } from "../models/store.model.js";
+import { getUserById } from "../models/user.model.js";
 import { validate as isValidUUID } from "uuid";
 
 // AUTHRORIZE USER

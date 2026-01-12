@@ -2,16 +2,16 @@ import { Router } from "express";
 import {
   authorizeAdmin,
   authorizeUser,
-} from "../middleware/auth.middleware.ts";
+} from "../middleware/auth.middleware.js";
 import {
   createBrand,
   deleteBrand,
   getAllBrands,
   getBrand,
   updateBrand,
-} from "../controllers/brand.controller.ts";
-import { validateForm } from "../middleware/validate.middleware.ts";
-import { brandFormSchema } from "../schemas/brand.schema.ts";
+} from "../controllers/brand.controller.js";
+import { validateForm } from "../middleware/validate.middleware.js";
+import { brandFormSchema } from "../schemas/brand.schema.js";
 
 const router = Router();
 

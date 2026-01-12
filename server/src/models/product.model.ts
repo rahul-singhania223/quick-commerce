@@ -1,5 +1,5 @@
-import db from "../configs/db.config.ts";
-import { Product } from "../generated/prisma/client.ts";
+import db from "../configs/db.config.js";
+import { Product } from "../generated/prisma/client.js";
 
 // searcch products
 type QueryParams = {

@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { getAuthUser, getOTP, getOTPStatus, logout, verifyOTP } from "../controllers/user.controller.ts";
-import { validateForm } from "../middleware/validate.middleware.ts";
-import { generateOTPSchema, otpFormSchema } from "../schemas/auth.schema.ts";
-import { authorizeUser } from "../middleware/auth.middleware.ts";
+import { getAuthUser, getOTP, getOTPStatus, logout, verifyOTP } from "../controllers/user.controller.js";
+import { validateForm } from "../middleware/validate.middleware.js";
+import { generateOTPSchema, otpFormSchema } from "../schemas/auth.schema.js";
+import { authorizeUser } from "../middleware/auth.middleware.js";
 
 const router = Router();
 

@@ -1,25 +1,25 @@
 import { config } from "dotenv";
 import { Request, Response, NextFunction } from "express";
-import asyncHandler from "../utils/async-handler.ts";
-import { ApiError } from "../utils/api-error.ts";
-import { generateOTP } from "../utils/otp.util.ts";
+import asyncHandler from "../utils/async-handler.js";
+import { ApiError } from "../utils/api-error.js";
+import { generateOTP } from "../utils/otp.util.js";
 import { v4, validate as isValidUUID } from "uuid";
-import redis from "../configs/redis.config.ts";
-import sendOTP from "../utils/send-otp.ts";
+import redis from "../configs/redis.config.js";
+import sendOTP from "../utils/send-otp.js";
 import bcrypt from "bcrypt";
 import {
   createUser,
   getUserById,
   getUserByPhone,
-} from "../models/user.model.ts";
+} from "../models/user.model.js";
 import {
   generateAccessToken,
   generateRefreshToken,
-} from "../utils/token.util.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
-import { User } from "../generated/prisma/client.ts";
+} from "../utils/token.util.js";
+import { APIResponse } from "../utils/api-response.util.js";
+import { User } from "../generated/prisma/client.js";
 import z from "zod";
-import { otpFormSchema } from "../schemas/auth.schema.ts";
+import { otpFormSchema } from "../schemas/auth.schema.js";
 
 config();
 

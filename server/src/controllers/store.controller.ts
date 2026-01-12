@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import asyncHandler from "../utils/async-handler.ts";
-import { ApiError } from "../utils/api-error.ts";
+import asyncHandler from "../utils/async-handler.js";
+import { ApiError } from "../utils/api-error.js";
 import {
   getAllStoresByUserId,
   getAllStores as getAllDbStores,
@@ -8,13 +8,13 @@ import {
   deleteStore as deleteDbStore,
   getStore as getDbStore,
   updateStore as updateDbStore,
-} from "../models/store.model.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
-import { createStoreSchema } from "../schemas/store.schema.ts";
+} from "../models/store.model.js";
+import { APIResponse } from "../utils/api-response.util.js";
+import { createStoreSchema } from "../schemas/store.schema.js";
 import z from "zod";
-import { Store, User } from "../generated/prisma/client.ts";
+import { Store, User } from "../generated/prisma/client.js";
 import { v4, validate as isValidUUID } from "uuid";
-import { getUserById, updateUser } from "../models/user.model.ts";
+import { getUserById, updateUser } from "../models/user.model.js";
 import { get } from "http";
 import { Decimal } from "@prisma/client/runtime/client";
 

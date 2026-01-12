@@ -1,22 +1,22 @@
-import asyncHandler from "../utils/async-handler.ts";
+import asyncHandler from "../utils/async-handler.js";
 import {
   getAllZones as fetchAllZones,
   getZone as fetchZone,
-} from "../models/zone.model.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
+} from "../models/zone.model.js";
+import { APIResponse } from "../utils/api-response.util.js";
 import { NextFunction, Request, Response } from "express";
-import { ApiError } from "../utils/api-error.ts";
+import { ApiError } from "../utils/api-error.js";
 import z from "zod";
-import { createZoneSchema } from "../schemas/zone.schema.ts";
-import { Prisma, Zone } from "../generated/prisma/client.ts";
+import { createZoneSchema } from "../schemas/zone.schema.js";
+import { Prisma, Zone } from "../generated/prisma/client.js";
 import { v4, validate as isValidUUID } from "uuid";
 import {
   createZone as createDbZone,
   getZone as getDbZone,
   updateZone as updateDbZone,
   deleteZone as deleteDbZone,
-} from "../models/zone.model.ts";
-import { isPointInPolygon } from "../utils/location.util.ts";
+} from "../models/zone.model.js";
+import { isPointInPolygon } from "../utils/location.util.js";
 
 // GET ZONE BY POSITION
 export const getZoneByPosition = asyncHandler(

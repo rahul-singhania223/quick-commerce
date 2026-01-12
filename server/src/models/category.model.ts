@@ -1,5 +1,5 @@
-import db from "../configs/db.config.ts";
-import { Category } from "../generated/prisma/client.ts";
+import db from "../configs/db.config.js";
+import { Category } from "../generated/prisma/client.js";
 
 // get all categories
 export const getAllCategories = async () => {

@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import asyncHandler from "../utils/async-handler.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
-import { ApiError } from "../utils/api-error.ts";
+import asyncHandler from "../utils/async-handler.js";
+import { APIResponse } from "../utils/api-response.util.js";
+import { ApiError } from "../utils/api-error.js";
 import { v4, validate as isValidUUID } from "uuid";
-import { productFormSchema } from "../schemas/product.schema.ts";
+import { productFormSchema } from "../schemas/product.schema.js";
 import z from "zod";
-import { Category, Product } from "../generated/prisma/client.ts";
+import { Category, Product } from "../generated/prisma/client.js";
 import slugify from "slugify";
 import {
   createProduct as createDbProduct,
@@ -14,10 +14,10 @@ import {
   updateProduct as updateDbProduct,
   deleteProduct as deleteDbProduct,
   searchProducts as searchDbProducts,
-} from "../models/product.model.ts";
+} from "../models/product.model.js";
 
-import { getCategory as fetchCategory } from "../models/category.model.ts";
-import { getBrand as fetchBrand } from "../models/brand.model.ts";
+import { getCategory as fetchCategory } from "../models/category.model.js";
+import { getBrand as fetchBrand } from "../models/brand.model.js";
 
 // SEARCH PRODUCTS
 export const searchProducts = asyncHandler(

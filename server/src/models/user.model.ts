@@ -1,6 +1,6 @@
-import db from "../configs/db.config.ts";
-import { User } from "../generated/prisma/client.ts";
-import { ApiError } from "../utils/api-error.ts";
+import db from "../configs/db.config.js";
+import { User } from "../generated/prisma/client.js";
+import { ApiError } from "../utils/api-error.js";
 
 // GET USER (PHONE)
 export const getUserByPhone = async (phone: string) => {

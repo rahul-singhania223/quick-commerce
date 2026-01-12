@@ -1,19 +1,19 @@
 import { Request, Response, NextFunction } from "express";
-import asyncHandler from "../utils/async-handler.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
-import { ApiError } from "../utils/api-error.ts";
+import asyncHandler from "../utils/async-handler.js";
+import { APIResponse } from "../utils/api-response.util.js";
+import { ApiError } from "../utils/api-error.js";
 import z from "zod";
-import { createProductVariantSchema } from "../schemas/product_variant.schema.ts";
+import { createProductVariantSchema } from "../schemas/product_variant.schema.js";
 import { v4, validate as isValidUUID } from "uuid";
-import { Prisma, ProductVariant } from "../generated/prisma/client.ts";
+import { Prisma, ProductVariant } from "../generated/prisma/client.js";
 import {
   getAllProductVariants as fetchAllProductVariants,
   getProductVariant as fetchProductVariant,
   createProductVariant as createDbProductVariant,
   updateProductVariant as updateDbProductVariant,
   deleteProductVariant as deleteDbProductVariant,
-} from "../models/product_variant.model.ts";
-import { getProduct as fetchProduct } from "../models/product.model.ts";
+} from "../models/product_variant.model.js";
+import { getProduct as fetchProduct } from "../models/product.model.js";
 
 // GET ALL PRODUCT VARIANTS
 export const getAllProductVariants = asyncHandler(

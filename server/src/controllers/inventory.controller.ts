@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import { ApiError } from "../utils/api-error.ts";
-import { APIResponse } from "../utils/api-response.util.ts";
-import asyncHandler from "../utils/async-handler.ts";
+import { ApiError } from "../utils/api-error.js";
+import { APIResponse } from "../utils/api-response.util.js";
+import asyncHandler from "../utils/async-handler.js";
 import {
   getInventory as fetchInventory,
   getStoreInventory as fetchStoreInventory,
   updateInventory as updateDbInventory,
-} from "../models/inventory.model.ts";
+} from "../models/inventory.model.js";
 import { validate as isValidUUID } from "uuid";
-import { Inventory, Prisma } from "../generated/prisma/client.ts";
+import { Inventory, Prisma } from "../generated/prisma/client.js";
 
 // GET INVENTORY BY ID
 export const getInventoryById = asyncHandler(

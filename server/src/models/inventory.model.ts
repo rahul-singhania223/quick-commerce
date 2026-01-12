@@ -1,6 +1,6 @@
 import { includes } from "zod/v4";
-import db from "../configs/db.config.ts";
-import { Inventory, Prisma } from "../generated/prisma/client.ts";
+import db from "../configs/db.config.js";
+import { Inventory, Prisma } from "../generated/prisma/client.js";
 
 // update inventory
 export const updateInventory = async (

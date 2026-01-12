@@ -1,5 +1,5 @@
-import db from "../configs/db.config.ts";
-import { ProductVariant } from "../generated/prisma/client.ts";
+import db from "../configs/db.config.js";
+import { ProductVariant } from "../generated/prisma/client.js";
 
 // GET ALL PRODUCT VARIANTS
 export const getAllProductVariants = async () => {

@@ -2,16 +2,16 @@ import { Router } from "express";
 import {
   authorizeStoreOwner,
   authorizeUser,
-} from "../middleware/auth.middleware.ts";
-import { validateForm } from "../middleware/validate.middleware.ts";
-import { createStoreProductSchema } from "../schemas/store_product.schema.ts";
+} from "../middleware/auth.middleware.js";
+import { validateForm } from "../middleware/validate.middleware.js";
+import { createStoreProductSchema } from "../schemas/store_product.schema.js";
 import {
   createStoreProduct,
   deleteStoreProduct,
   getAllStoreProducts,
   getStoreProduct,
   updateStoreProduct,
-} from "../controllers/store_product.controller.ts";
+} from "../controllers/store_product.controller.js";
 
 const router = Router();
 

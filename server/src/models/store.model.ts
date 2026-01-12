@@ -1,5 +1,5 @@
-import db from "../configs/db.config.ts";
-import { Store } from "../generated/prisma/client.ts";
+import db from "../configs/db.config.js";
+import { Store } from "../generated/prisma/client.js";
 
 // CREATE STORE
 export const createStore = async (data: Store) => {

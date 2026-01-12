@@ -5,13 +5,13 @@ import {
   getAllCategories,
   getCategory,
   updateCategory,
-} from "../controllers/category.controller.ts";
+} from "../controllers/category.controller.js";
 import {
   authorizeAdmin,
   authorizeUser,
-} from "../middleware/auth.middleware.ts";
-import { categoryFormSchema } from "../schemas/category.schema.ts";
-import { validateForm } from "../middleware/validate.middleware.ts";
+} from "../middleware/auth.middleware.js";
+import { categoryFormSchema } from "../schemas/category.schema.js";
+import { validateForm } from "../middleware/validate.middleware.js";
 
 const router = Router();
 

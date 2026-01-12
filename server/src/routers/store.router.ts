@@ -3,7 +3,7 @@ import {
   authorizeAdmin,
   authorizeStoreOwner,
   authorizeUser,
-} from "../middleware/auth.middleware.ts";
+} from "../middleware/auth.middleware.js";
 import {
   createStore,
   deleteStore,
@@ -11,9 +11,9 @@ import {
   getAllUserStores,
   getStore,
   updateStore,
-} from "../controllers/store.controller.ts";
-import { validateForm } from "../middleware/validate.middleware.ts";
-import { createStoreSchema } from "../schemas/store.schema.ts";
+} from "../controllers/store.controller.js";
+import { validateForm } from "../middleware/validate.middleware.js";
+import { createStoreSchema } from "../schemas/store.schema.js";
 
 const router = Router();
 

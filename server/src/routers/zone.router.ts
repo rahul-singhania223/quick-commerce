@@ -2,8 +2,8 @@ import { Router } from "express";
 import {
   authorizeAdmin,
   authorizeUser,
-} from "../middleware/auth.middleware.ts";
-import { validateForm } from "../middleware/validate.middleware.ts";
+} from "../middleware/auth.middleware.js";
+import { validateForm } from "../middleware/validate.middleware.js";
 import {
   createZone,
   deleteZone,
@@ -11,9 +11,9 @@ import {
   getZone,
   getZoneByPosition,
   updateZone,
-} from "../controllers/zone.controller.ts";
+} from "../controllers/zone.controller.js";
 
-import { createZoneSchema } from "../schemas/zone.schema.ts";
+import { createZoneSchema } from "../schemas/zone.schema.js";
 
 const router = Router();
 

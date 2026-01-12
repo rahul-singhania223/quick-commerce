@@ -2,12 +2,12 @@ import { Router } from "express";
 import {
   authorizeStoreOwner,
   authorizeUser,
-} from "../middleware/auth.middleware.ts";
+} from "../middleware/auth.middleware.js";
 import {
   getAllStoreInventory,
   getInventoryById,
   updateInventory,
-} from "../controllers/inventory.controller.ts";
+} from "../controllers/inventory.controller.js";
 
 const router = Router();
 

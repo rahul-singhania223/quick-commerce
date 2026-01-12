@@ -8,13 +8,13 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/User.ts'
-export type * from './models/Zone.ts'
-export type * from './models/Store.ts'
-export type * from './models/Product.ts'
-export type * from './models/Category.ts'
-export type * from './models/Brand.ts'
-export type * from './models/ProductVariant.ts'
-export type * from './models/StoreProduct.ts'
-export type * from './models/Inventory.ts'
-export type * from './commonInputTypes.ts'
+export type * from './models/User.js'
+export type * from './models/Zone.js'
+export type * from './models/Store.js'
+export type * from './models/Product.js'
+export type * from './models/Category.js'
+export type * from './models/Brand.js'
+export type * from './models/ProductVariant.js'
+export type * from './models/StoreProduct.js'
+export type * from './models/Inventory.js'
+export type * from './commonInputTypes.js'

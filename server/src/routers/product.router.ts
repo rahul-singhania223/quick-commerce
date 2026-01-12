@@ -2,9 +2,9 @@ import { Router } from "express";
 import {
   authorizeAdmin,
   authorizeUser,
-} from "../middleware/auth.middleware.ts";
-import { validateForm } from "../middleware/validate.middleware.ts";
-import { productFormSchema } from "../schemas/product.schema.ts";
+} from "../middleware/auth.middleware.js";
+import { validateForm } from "../middleware/validate.middleware.js";
+import { productFormSchema } from "../schemas/product.schema.js";
 import {
   createProduct,
   deleteProduct,
@@ -12,7 +12,7 @@ import {
   getProduct,
   searchProducts,
   updateProduct,
-} from "../controllers/product.controller.ts";
+} from "../controllers/product.controller.js";
 
 const router = Router();
 

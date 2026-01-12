@@ -1,18 +1,18 @@
-// tsconfig.json
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "node",
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext", // Changed: Better for ESM
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
     "rootDir": "src",
-    "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": false, // Changed: Must be false to create files
+    "sourceMap": true,
+    "declaration": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }
