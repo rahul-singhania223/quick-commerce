@@ -163,13 +163,13 @@ export const verifyOTP = asyncHandler(
         .cookie("refresh_token", refreshToken, {
           httpOnly: true,
           secure: true,
-          sameSite: "lax",
+          sameSite: "none",
           maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
         })
         .cookie("access_token", accessToken, {
           httpOnly: true,
           secure: true,
-          sameSite: "lax",
+          sameSite: "none",
           maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
         })
         .json(
@@ -209,13 +209,13 @@ export const verifyOTP = asyncHandler(
       .cookie("refresh_token", refreshToken, {
         httpOnly: true,
         secure: true,
-        sameSite: "lax",
+        sameSite: "none",
         maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
       })
       .cookie("access_token", accessToken, {
         httpOnly: true,
         secure: true,
-        sameSite: "lax",
+        sameSite: "none",
         maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
       })
       .json(
