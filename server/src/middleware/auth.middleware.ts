@@ -72,14 +72,14 @@ export const authorizeUser = asyncHandler(
     req.user = sessionData;
     res.cookie("refresh_token", newRefreshToken, {
       httpOnly: true,
-      secure: false,
-      // sameSite: "none",
+      secure: true,
+      sameSite: "lax",
       maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
     });
     res.cookie("access_token", newAccessToken, {
       httpOnly: true,
-      secure: false,
-      // sameSite: "none",
+      secure: true,
+      sameSite: "lax",
       maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
     });
     return next();
