@@ -29,8 +29,6 @@ export default function OTPForm({ session_id, phone }: Props) {
 
   const router = useRouter();
 
-  console.log(session_id, phone)
-
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +38,7 @@ export default function OTPForm({ session_id, phone }: Props) {
     if (isSubmitting) return;
     if (!phone) return setError("Phone number is required!");
     if (otp.length === 0) return setError("OTP is required!");
-    if (otp.length !== 6) return setError("Invalid OTP!");
+    if (otp.length !== 4) return setError("Invalid OTP!");
 
     try {
       setIsSubmitting(true);
