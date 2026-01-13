@@ -67,7 +67,7 @@ export const getOTP = asyncHandler(
 
     // Generate and store
     const sessionId = v4();
-    const OTP = generateOTP(6);
+    const OTP = generateOTP(4);
     const otpHash = await bcrypt.hash(OTP, 8);
     const otpKey = `otp:pending:${sessionId}:${phone}`;
 

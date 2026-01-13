@@ -10,8 +10,8 @@ export const generateOTPSchema = z.object({
 export const otpFormSchema = z.object({
   OTP: z
     .string()
-    .length(6, "Invalid OTP!")
-    .regex(/^\d{6}$/, "Invalid OTP!"),
+    .length(4, "Invalid OTP!")
+    .regex(/^\d{4}$/, "Invalid OTP!"),
   phone: z
     .string()
     .length(10, "Invalid phone number!")
