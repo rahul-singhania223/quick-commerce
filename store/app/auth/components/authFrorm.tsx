@@ -35,7 +35,6 @@ const AuthForm = () => {
 
   const onSubmit = async (data: z.infer<typeof authFormSchema>) => {
     try {
-      return
       const res = await getOTP(data);
       const resData = res.data as SuccessResponse;
 
