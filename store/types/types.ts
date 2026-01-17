@@ -58,6 +58,7 @@ export type Store = {
 export type ProductSearchResult = {
   id: string;
   name: string;
+  image?: string;
   brand?: { name: string };
   category?: { name: string };
   variants: {
@@ -131,6 +132,7 @@ export type StoreProduct = {
   created_at: Date;
   updated_at: Date;
   variant?: ProductVariant;
+  inventory: Inventory;
 };
 
 export type Inventory = {

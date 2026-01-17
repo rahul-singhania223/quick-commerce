@@ -28,6 +28,31 @@ import {
   getInventory as fetchInventory,
 } from "../models/inventory.model.js";
 
+// GET ALL STORE PRODUCTS BY STORE ID
+export const getAllStoreProductsByStore = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const storeId = req.params.storeId;
+    if (!storeId || !isValidUUID(storeId))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid store ID!"));
+
+    const storeProducts = await fetchAllStoreProducts({ store_id: storeId });
+    if (!storeProducts)
+      return next(
+        new ApiError(404, "DB_ERROR", "Couldn't get store products!")
+      );
+
+    return res
+      .status(200)
+      .json(
+        new APIResponse(
+          "success",
+          "Store products fetched successfully!",
+          storeProducts
+        )
+      );
+  }
+);
+
 // GET ALL STORE PRODUCTS
 export const getAllStoreProducts = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -311,7 +336,9 @@ export const deleteStoreProduct = asyncHandler(
     if (!storeProductId || !isValidUUID(storeProductId))
       return next(new ApiError(400, "INVALID_DATA", "Invalid product ID!"));
 
-    const existingStoreProduct: StoreProduct | null = await fetchStoreProduct(storeProductId);
+    const existingStoreProduct: StoreProduct | null = await fetchStoreProduct(
+      storeProductId
+    );
     if (!existingStoreProduct)
       return next(new ApiError(404, "DB_ERROR", "Store product not found!"));
 

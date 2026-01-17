@@ -19,7 +19,8 @@ export default function Header() {
 
   const handleLogout = async () => {
     if (loggingOut) return;
-    if (!loading || !user) return;
+    if (loading) return;
+    console.log('logout hit')
     try {
       setLoggingOut(true);
 

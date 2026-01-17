@@ -9,6 +9,7 @@ import {
   createStoreProduct,
   deleteStoreProduct,
   getAllStoreProducts,
+  getAllStoreProductsByStore,
   getStoreProduct,
   updateStoreProduct,
 } from "../controllers/store_product.controller.js";
@@ -17,6 +18,14 @@ const router = Router();
 
 // GET ALL STORE PRODUCTS
 router.get("/", getAllStoreProducts);
+
+// GET ALL STORE PRODUCTS + INVENTORY BY STORE ID
+router.get(
+  "/:storeId",
+  authorizeUser,
+  authorizeStoreOwner,
+  getAllStoreProductsByStore
+);
 
 // GET STORE PRODUCT
 router.get("/:id", getStoreProduct);

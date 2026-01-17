@@ -12,36 +12,30 @@ import { useRouter } from "next/navigation";
 import PageLoader from "@/components/page-loader";
 
 export function PageComponent() {
-  const [loading, setLoading] = useState(true);
-
-  const getStoreReqCount = useRef(0);
-
   const router = useRouter();
 
-  const { stores, setStores } = useUserStore();
+  const { stores, setStores, isLoading, setLoading } = useUserStore();
 
   useEffect(() => {
-    if (stores.length > 0) return;
-    getStoreReqCount.current = 0;
+    if (stores) return;
 
-    const getStores = async () => {
-      getStoreReqCount.current++;
+    const fetchAllStores = async () => {
       try {
         setLoading(true);
         const res = await storeQuery.getStores();
-        setStores(res.data.data as Store[]);
+        setStores(res.data.data);
       } catch (error) {
         console.log(error);
-        if (getStoreReqCount.current < 3) getStores();
       } finally {
         setLoading(false);
       }
     };
 
-    getStores();
-  }, []);
+    fetchAllStores();
+  }, [stores]);
 
-  if (loading) return <PageLoader />;
+  if (isLoading) return <PageLoader />;
+  if (!stores) return null;
 
   return (
     <>
@@ -71,7 +65,7 @@ export function PageComponent() {
           </div>
         )}
 
-        {stores.length > 0 &&  (
+        {stores.length > 0 && (
           <>
             <div className="p-6 border-b">
               <h1 className="text-[22px] font-bold">Your Stores</h1>

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 class InventoryQuery {
   async getStoreInventory(storeId: string) {
     try {
-      const res = await api.get(`/inventory/${storeId}`);
+      const res = await api.get(`/store-product/${storeId}`);
       return res;
     } catch (error) {
       throw error;

@@ -70,7 +70,7 @@ model Product {
   updated_at DateTime @updatedAt
 
   variants ProductVariant[]
-  category Category         @relation(fields: [category_id], references: [id])
+  category Category         @relation(fields: [category_id], references: [id], onDelete: Cascade)
   brand    Brand?           @relation(fields: [brand_id], references: [id])
 
   @@index([name])
@@ -98,7 +98,7 @@ model Category {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  parent   Category?  @relation("CategoryTree", fields: [parent_id], references: [id])
+  parent   Category?  @relation("CategoryTree", fields: [parent_id], references: [id], onDelete: Cascade)
   children Category[] @relation("CategoryTree")
 
   products Product[]
@@ -147,7 +147,7 @@ model ProductVariant {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  product        Product        @relation(fields: [product_id], references: [id])
+  product        Product        @relation(fields: [product_id], references: [id], onDelete: Cascade)
   store_products StoreProduct[]
 }
 
@@ -167,7 +167,7 @@ model StoreProduct {
   updated_at DateTime @updatedAt
   inventory Inventory?
 
-  store     Store          @relation(fields: [store_id], references: [id])
+  store     Store          @relation(fields: [store_id], references: [id], onDelete: Cascade)
   variant   ProductVariant @relation(fields: [variant_id], references: [id])
 
   @@unique([store_id, variant_id])

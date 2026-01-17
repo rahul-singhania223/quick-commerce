@@ -1,4 +1,5 @@
-import { Navbar } from "./components/navbar";
+import BottomNav from "../store/[storeId]/components/bottom-nav";
+import { Navbar } from "../store/[storeId]/components/navbar";
 
 export default function DashboardLayout({
   children,
@@ -8,6 +9,7 @@ export default function DashboardLayout({
   return (
     <>
       {children}
+      <BottomNav />
     </>
   );
 }

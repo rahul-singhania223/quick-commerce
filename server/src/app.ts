@@ -25,7 +25,7 @@ import path from "path";
 const allowedOrigins = process.env.ALLOWED_ORIGINS!.split(" ");
 
 const corsOptions = {
-  origin: allowedOrigins,
+  origin: true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],

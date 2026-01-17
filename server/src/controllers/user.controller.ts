@@ -70,6 +70,8 @@ export const getOTP = asyncHandler(
     const OTP = generateOTP(4);
     const otpHash = await bcrypt.hash(OTP, 8);
     const otpKey = `otp:pending:${sessionId}:${phone}`;
+    const now = Date.now();
+    const resend_at = now + RESEND_WAIT_SEC * 1000;
 
     // TODO: send otp
     console.log(OTP);
@@ -81,7 +83,7 @@ export const getOTP = asyncHandler(
         phone,
         otp_hash: otpHash,
         attempts_left: OTP_ATTEMPTS,
-        resend_at: Date.now() + RESEND_WAIT_SEC * 1000,
+        resend_at: resend_at,
         created_at: Date.now(),
       })
       .expire(otpKey, OTP_TTL)
@@ -162,14 +164,16 @@ export const verifyOTP = asyncHandler(
       return res
         .cookie("refresh_token", refreshToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: "none",
+          secure: false,
+          sameSite: "lax",
+          // sameSite: process.env.NODE_ENV === "production" ? "none" : undefined,
           maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
         })
         .cookie("access_token", accessToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: "none",
+          secure: false,
+          sameSite: "lax",
+          // sameSite: process.env.NODE_ENV === "production" ? "none" : undefined,
           maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
         })
         .json(
@@ -208,14 +212,16 @@ export const verifyOTP = asyncHandler(
     return res
       .cookie("refresh_token", refreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        secure: false,
+        sameSite: "lax",
+        // sameSite: process.env.NODE_ENV === "production" ? "none" : undefined,
         maxAge: Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60 * 1000,
       })
       .cookie("access_token", accessToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        secure: false,
+        sameSite: "lax",
+        // sameSite: process.env.NODE_ENV === "production" ? "none" : undefined,
         maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
       })
       .json(
@@ -295,12 +301,10 @@ export const getAuthUser = asyncHandler(
     const dbUser = await getUserById(user.id as string);
     if (!dbUser) return next(new ApiError(404, "NOT_FOUND", "User not found!"));
 
-    return res
-      .status(200)
-      .json(
-        new APIResponse("SUCCESS", "Auth user fetched successfully!", {
-          user: dbUser,
-        })
-      );
+    return res.status(200).json(
+      new APIResponse("SUCCESS", "Auth user fetched successfully!", {
+        user: dbUser,
+      })
+    );
   }
 );

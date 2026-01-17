@@ -3,11 +3,42 @@ import db from "../configs/db.config.js";
 import { Prisma, StoreProduct } from "../generated/prisma/client.js";
 
 // get all store products
-export const getAllStoreProducts = async () => {
+export const getAllStoreProducts = async (
+  query?: Prisma.StoreProductScalarWhereInput
+) => {
   try {
     // TODO: Add pagination
 
-    const storeProducts = await db.storeProduct.findMany({});
+    const storeProducts = await db.storeProduct.findMany({
+      where: { ...query },
+      include: {
+        inventory: true,
+        variant: {
+          select: {
+            id: true,
+            name: true,
+            mrp: true,
+            image: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                category: {
+                  select: {
+                    name: true,
+                  },
+                },
+                brand: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
     return storeProducts;
   } catch (error) {
     return null;
@@ -22,7 +53,7 @@ export const getStoreProduct = async (id: string) => {
     });
     return storeProduct;
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return null;
   }
 };
@@ -59,7 +90,7 @@ export const deleteStoreProduct = async (id: string) => {
     const storeProduct = await db.storeProduct.delete({ where: { id } });
     return storeProduct;
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return null;
   }
 };

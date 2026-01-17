@@ -40,7 +40,7 @@ export default function LocationInput({
   }
 
   return (
-    <div className="bg-black flex-1 max-w-125 max-h-60">
+    <div className="flex-1 max-w-125 max-h-60">
       <Map
         width="100%"
         height="100%"
