@@ -23,7 +23,7 @@ export const authorizeUser = asyncHandler(
       try {
         decodedAccessToken = jwt.verify(
           accessToken,
-          process.env.ACCESS_TOKEN_SECRET!
+          process.env.ACCESS_TOKEN_SECRET!,
         ) as JwtPayload;
       } catch (err) {
         return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
@@ -43,7 +43,7 @@ export const authorizeUser = asyncHandler(
     try {
       decodedRefreshToken = jwt.verify(
         refreshToken,
-        process.env.REFRESH_TOKEN_SECRET!
+        process.env.REFRESH_TOKEN_SECRET!,
       ) as JwtPayload;
     } catch (err) {
       return next(new ApiError(401, "UNAUTHORIZED", "Unauthorized!"));
@@ -66,7 +66,7 @@ export const authorizeUser = asyncHandler(
       sessionId,
       JSON.stringify({ userId: sessionData.userId }),
       "EX",
-      Number(process.env.REFRESH_TOKEN_EXP!) * 60 * 60 * 24
+      Number(process.env.REFRESH_TOKEN_EXP!) * 60 * 60 * 24,
     );
 
     req.user = sessionData;
@@ -85,7 +85,7 @@ export const authorizeUser = asyncHandler(
       maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
     });
     return next();
-  }
+  },
 );
 
 // AUTHRORIZE STORE
@@ -116,15 +116,15 @@ export const authorizeStoreOwner = asyncHandler(
           new ApiError(
             403,
             "FORBIDDEN",
-            "You are not the store owner nor admin!"
-          )
+            "You are not the store owner nor admin!",
+          ),
         );
     }
 
     req.store = store;
 
     return next();
-  }
+  },
 );
 
 // AUTHRORIZE ADMIN
@@ -141,5 +141,5 @@ export const authorizeAdmin = asyncHandler(
 
     req.user = dbUser;
     return next();
-  }
+  },
 );

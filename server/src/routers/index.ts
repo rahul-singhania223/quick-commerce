@@ -7,6 +7,7 @@ import productRouter from "./product.router.js";
 import productVariantRouter from "./product_variant.router.js";
 import storeProductRouter from "./store_product.router.js";
 import inventoryRouter from "./inventory.router.js";
+import addressRouter from "./address.router.js";
 
 export {
   userRouter,
@@ -18,4 +19,5 @@ export {
   productVariantRouter,
   storeProductRouter,
   inventoryRouter,
+  addressRouter
 };

@@ -1,3 +1,4 @@
+import { includes } from "zod/v4";
 import db from "../configs/db.config.js";
 import { User } from "../generated/prisma/client.js";
 import { ApiError } from "../utils/api-error.js";
@@ -20,7 +21,14 @@ export const getUserByPhone = async (phone: string) => {
 // GET USER BY ID
 export const getUserById = async (id: string) => {
   try {
-    const user = await db.user.findUnique({ where: { id } });
+    const user = await db.user.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { addresses: true },
+        },
+      },
+    });
     return user;
   } catch (error) {
     return null;

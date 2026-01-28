@@ -98,23 +98,23 @@ export default function OTPForm({ session_id, phone }: Props) {
     getOtpMeta();
   }, [session_id, phone]);
 
-  useEffect(() => {
-    if (!otpMeta) return;
-    const tick = () => {
-      const nowMs = Date.now();
-      const remainingMs = otpMeta.resend_at - nowMs;
+  // useEffect(() => {
+  //   if (!otpMeta) return;
+  //   const tick = () => {
+  //     const nowMs = Date.now();
+  //     const remainingMs = otpMeta.resend_at - nowMs;
 
-      const remainingSec = Math.max(Math.ceil(remainingMs / 1000), 0);
-      setTimeLeft(remainingSec);
-    };
+  //     const remainingSec = Math.max(Math.ceil(remainingMs / 1000), 0);
+  //     setTimeLeft(remainingSec);
+  //   };
 
-    // run immediately
-    tick();
+  //   // run immediately
+  //   tick();
 
-    const interval = setInterval(tick, 1000);
+  //   const interval = setInterval(tick, 1000);
 
-    return () => clearInterval(interval);
-  }, [otpMeta]);
+  //   return () => clearInterval(interval);
+  // }, [otpMeta]);
 
   if (!phone || !session_id) return null;
 
@@ -187,10 +187,7 @@ export default function OTPForm({ session_id, phone }: Props) {
             isSubmitting={isSubmitting}
             otpMeta={otpMeta}
           />
-          {/* {resending && (
-            <Loader2 className="w-5! h-5! lg:w-4! lg:h-4! animate-spin text-muted-foreground" />
-          )}
-          {timeLeft > 0 ? "00:" + String(timeLeft).padStart(2, "0") : "Resend"} */}
+         
         </Button>
         <p className="text-red-500 text-base lg:text-sm mt-4 text-start w-full">
           {error}

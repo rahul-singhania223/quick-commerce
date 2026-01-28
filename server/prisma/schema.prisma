@@ -8,14 +8,15 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  phone      String   @unique
+  id         String    @id @default(uuid())
+  phone      String    @unique
   email      String?
-  role       Role     @default(CUSTOMER)
-  status     Status   @default(ACTIVE)
-  created_at DateTime @default(now())
+  role       Role      @default(CUSTOMER)
+  status     Status    @default(ACTIVE)
+  created_at DateTime  @default(now())
   updated_at DateTime
   Stores     Store[]
+  addresses  Address[]
 }
 
 model Zone {
@@ -163,12 +164,12 @@ model StoreProduct {
   is_available Boolean @default(true)
   is_listed    Boolean @default(true)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  inventory Inventory?
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  inventory  Inventory?
 
-  store     Store          @relation(fields: [store_id], references: [id], onDelete: Cascade)
-  variant   ProductVariant @relation(fields: [variant_id], references: [id])
+  store   Store          @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variant_id], references: [id])
 
   @@unique([store_id, variant_id])
 }
@@ -187,6 +188,44 @@ model Inventory {
   created_at DateTime @default(now())
 
   store_product StoreProduct @relation(fields: [store_product_id], references: [id], onDelete: Cascade)
+}
+
+model Address {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  label AddressLabel @default(HOME)
+
+  name  String
+  phone String
+
+  addressLine1 String
+  addressLine2 String?
+  landmark     String?
+
+  city    String
+  state   String
+  country String @default("India")
+  pincode String
+
+  latitude  Float
+  longitude Float
+
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([latitude, longitude])
+}
+
+enum AddressLabel {
+  HOME
+  WORK
+  OTHER
 }
 
 enum Role {

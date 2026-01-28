@@ -1,5 +1,6 @@
 import express, { NextFunction, type Request, type Response } from "express";
 import {
+  addressRouter,
   brandRouter,
   categoryRouter,
   inventoryRouter,
@@ -56,6 +57,7 @@ app.use("/api/v1/product", productRouter);
 app.use("/api/v1/product-variant", productVariantRouter);
 app.use("/api/v1/store-product", storeProductRouter);
 app.use("/api/v1/inventory", inventoryRouter);
+app.use("/api/v1/address", addressRouter);
 
 // catch unkown routes
 app.use((req: Request, res: Response, next: NextFunction) => {

@@ -84,3 +84,8 @@ export type StoreProduct = Prisma.StoreProductModel
  * 
  */
 export type Inventory = Prisma.InventoryModel
+/**
+ * Model Address
+ * 
+ */
+export type Address = Prisma.AddressModel

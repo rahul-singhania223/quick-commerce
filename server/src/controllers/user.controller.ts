@@ -29,18 +29,18 @@ export const getOTP = asyncHandler(
     const { phone } = req.body;
     if (!phone)
       return next(
-        new ApiError(400, "INVALID_DATA", "Phone number is required")
+        new ApiError(400, "INVALID_DATA", "Phone number is required"),
       );
 
     const OTP_TTL = 5 * 60; // seconds
     const OTP_ATTEMPTS = 5;
     const RESEND_WINDOW_SEC = 3600; // 1 hour
-    const RESEND_LIMIT_PER_HOUR = 5;
-    const RESEND_WAIT_SEC = 60;
+    const RESEND_LIMIT_PER_HOUR = 50;
+    const RESEND_WAIT_SEC = 30;
 
     // rate limit ( 5 resends per hour )
     const phoneReqKey = `otp:requests:${phone}:${Math.floor(
-      Date.now() / (RESEND_WINDOW_SEC * 1000)
+      Date.now() / (RESEND_WINDOW_SEC * 1000),
     )}`;
     const reqCount = await redis.incr(phoneReqKey);
     if (reqCount === 1) await redis.expire(phoneReqKey, RESEND_WINDOW_SEC);
@@ -49,8 +49,8 @@ export const getOTP = asyncHandler(
         new ApiError(
           400,
           "OTP_LIMIT_EXCEEDED",
-          "OTP limit exceeded try after 1 hour!"
-        )
+          "OTP limit exceeded try after 1 hour!",
+        ),
       );
 
     // limit resend (30 sec wait)
@@ -61,8 +61,8 @@ export const getOTP = asyncHandler(
         new ApiError(
           400,
           "OTP_RESEND_TOO_SOON",
-          "Wait for 30 seconds before resending!"
-        )
+          "Wait for 30 seconds before resending!",
+        ),
       );
 
     // Generate and store
@@ -75,6 +75,7 @@ export const getOTP = asyncHandler(
 
     // TODO: send otp
     console.log(OTP);
+    console.log(Math.ceil((resend_at - Date.now()) / 1000));
     // ==============
 
     await redis
@@ -94,9 +95,9 @@ export const getOTP = asyncHandler(
       new APIResponse("SUCCESS", "OTP sent!", {
         session_id: sessionId,
         phone,
-      })
+      }),
     );
-  }
+  },
 );
 
 // VERIFY OTP + AUTHENTICATION
@@ -111,8 +112,8 @@ export const verifyOTP = asyncHandler(
         new ApiError(
           400,
           "INVALID_DATA",
-          "Phone & OTP & Session ID are required!"
-        )
+          "Phone & OTP & Session ID are required!",
+        ),
       );
 
     const otpKey = `otp:pending:${session_id}:${phone}`;
@@ -123,8 +124,8 @@ export const verifyOTP = asyncHandler(
         new ApiError(
           400,
           "INVALID_DATA",
-          "OTP is either expired or not assigned!"
-        )
+          "OTP is either expired or not assigned!",
+        ),
       );
 
     if (Number(data.attempts_left) <= 0) {
@@ -133,8 +134,8 @@ export const verifyOTP = asyncHandler(
         new ApiError(
           400,
           "REACHED_OTP_ATTEMPTS_LIMIT",
-          "Max attempts reached. Try resend OTP!"
-        )
+          "Max attempts reached. Try resend OTP!",
+        ),
       );
     }
 
@@ -158,7 +159,7 @@ export const verifyOTP = asyncHandler(
         sessionId,
         JSON.stringify({ userId: user.id }),
         "EX",
-        Number(process.env.REFRESH_TOKEN_EXP!) * 60 * 60 * 24
+        Number(process.env.REFRESH_TOKEN_EXP!) * 60 * 60 * 24,
       );
 
       return res
@@ -177,11 +178,11 @@ export const verifyOTP = asyncHandler(
           maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
         })
         .json(
-          new APIResponse(
-            "SUCCESS",
-            "You are authenticated successfully!",
-            user
-          )
+          new APIResponse("SUCCESS", "You are authenticated successfully!", {
+            user,
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          }),
         );
     }
 
@@ -206,7 +207,7 @@ export const verifyOTP = asyncHandler(
       sessionId,
       JSON.stringify({ userId: newUser.id }),
       "EX",
-      Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60
+      Number(process.env.REFRESH_TOKEN_EXP!) * 24 * 60 * 60,
     );
 
     return res
@@ -225,9 +226,9 @@ export const verifyOTP = asyncHandler(
         maxAge: Number(process.env.ACCESS_TOKEN_EXP!) * 60 * 1000,
       })
       .json(
-        new APIResponse("SUCCESS", "You are authenticated successfully!", user)
+        new APIResponse("SUCCESS", "You are authenticated successfully!", {user: newUser, access_token: accessToken, refresh_token: refreshToken}),
       );
-  }
+  },
 );
 
 // GET OTP STATUS
@@ -237,17 +238,17 @@ export const getOTPStatus = asyncHandler(
 
     if (!session_id || !phone)
       return next(
-        new ApiError(400, "INVALID_DATA", "Session ID & Phone are required!")
+        new ApiError(400, "INVALID_DATA", "Session ID & Phone are required!"),
       );
 
     if (isValidUUID(session_id) === false)
       return next(
-        new ApiError(400, "INVALID_SESSION_ID", "Session ID is invalid!")
+        new ApiError(400, "INVALID_SESSION_ID", "Session ID is invalid!"),
       );
 
     if (/^[6-9]\d{9}$/.test(phone as string) === false)
       return next(
-        new ApiError(400, "INVALID_PHONE", "Phone number is invalid!")
+        new ApiError(400, "INVALID_PHONE", "Phone number is invalid!"),
       );
 
     const otpKey = `otp:pending:${session_id}:${phone}`;
@@ -259,9 +260,13 @@ export const getOTPStatus = asyncHandler(
         new ApiError(
           400,
           "INVALID_DATA",
-          "OTP is either expired or not assigned!"
-        )
+          "OTP is either expired or not assigned!",
+        ),
       );
+
+    const timeLeft = data.resend_at
+      ? Math.max(Math.ceil((Number(data.resend_at) - Date.now()) / 1000), 0)
+      : 0;
 
     return res.status(200).json(
       new APIResponse("SUCCESS", "OTP status fetched successfully!", {
@@ -269,10 +274,11 @@ export const getOTPStatus = asyncHandler(
         phone: data.phone,
         attempts_left: data.attempts_left,
         resend_at: data.resend_at,
+        time_left: timeLeft,
         created_at: data.created_at,
-      })
+      }),
     );
-  }
+  },
 );
 
 // LOG OUT
@@ -289,7 +295,7 @@ export const logout = asyncHandler(
       .clearCookie("refresh_token")
       .clearCookie("access_token")
       .json(new APIResponse("SUCCESS", "You are logged out successfully!"));
-  }
+  },
 );
 
 // GET AUTH USER
@@ -304,7 +310,7 @@ export const getAuthUser = asyncHandler(
     return res.status(200).json(
       new APIResponse("SUCCESS", "Auth user fetched successfully!", {
         user: dbUser,
-      })
+      }),
     );
-  }
+  },
 );
