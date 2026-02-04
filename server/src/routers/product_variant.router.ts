@@ -24,16 +24,21 @@ router.get("/:id", getProductVariant);
 // CREATE PRODUCT VARIANT
 router.post(
   "/",
-  authorizeUser,
-  authorizeAdmin,
+  // authorizeUser,
+  // authorizeAdmin,
   validateForm(createProductVariantSchema),
-  createProductVariant
+  createProductVariant,
 );
 
 // UPDATE PRODUCT VARIANT
 router.put("/:id", authorizeUser, authorizeAdmin, updateProductVariant);
 
 // DELETE PRODUCT VARIANT
-router.delete("/:id", authorizeUser, authorizeAdmin, deleteProductVariant);
+router.delete(
+  "/:id",
+  //  authorizeUser,
+  //  authorizeAdmin,
+  deleteProductVariant,
+);
 
 export default router;

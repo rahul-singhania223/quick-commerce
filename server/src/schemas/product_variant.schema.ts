@@ -10,13 +10,6 @@ export const createProductVariantSchema = z.object({
     .max(50, "Variant name too long"),
   // e.g. "500ml", "1kg", "Pack of 6"
 
-  sku: z
-    .string()
-    .trim()
-    .min(3)
-    .max(64)
-    .regex(/^[A-Z0-9-_]+$/, "SKU must be uppercase alphanumeric with - or _"),
-
   mrp: z
     .number()
     .positive("MRP must be greater than 0")

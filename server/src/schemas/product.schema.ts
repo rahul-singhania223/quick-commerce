@@ -10,6 +10,7 @@ export const productFormSchema = z.object({
   description: z.string().max(1000).optional().nullable().default(null),
 
   category_id: z.string().uuid("Invalid category ID"),
+  image: z.string().url("Image must be a valid URL"),
 
   brand_id: z
     .string()

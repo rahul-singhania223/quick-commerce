@@ -61,6 +61,7 @@ model Product {
   name        String
   slug        String  @unique
   description String?
+  image       String
 
   category_id String
   brand_id    String?
@@ -70,9 +71,10 @@ model Product {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  variants ProductVariant[]
-  category Category         @relation(fields: [category_id], references: [id], onDelete: Cascade)
-  brand    Brand?           @relation(fields: [brand_id], references: [id])
+  variants      ProductVariant[]
+  storeProducts StoreProduct[]
+  category      Category         @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  brand         Brand?           @relation(fields: [brand_id], references: [id])
 
   @@index([name])
   @@index([slug])
@@ -90,9 +92,6 @@ model Category {
   parent_id String?
   level     Int // 0 = root, 1 = child, 2 = sub-child
 
-  image       String?
-  description String?
-
   is_active  Boolean @default(true)
   sort_order Int     @default(0)
 
@@ -106,6 +105,7 @@ model Category {
 
   @@index([parent_id])
   @@index([slug])
+  @@index([name])
   @@index([is_active])
 }
 
@@ -115,8 +115,7 @@ model Brand {
   name String @unique
   slug String @unique
 
-  logo        String?
-  description String?
+  logo String
 
   is_active Boolean @default(true)
 
@@ -126,6 +125,7 @@ model Brand {
   products Product[]
 
   @@index([slug])
+  @@index([name])
   @@index([is_active])
 }
 
@@ -134,14 +134,13 @@ model ProductVariant {
 
   product_id String
 
-  sku  String @unique
   name String // e.g. "1L", "500ml", "Pack of 6"
 
   weight Decimal?
   unit   String? // g, kg, ml, l, pcs
 
   mrp   Decimal // printed MRP
-  image String?
+  image String
 
   is_active Boolean @default(true)
 
@@ -168,8 +167,10 @@ model StoreProduct {
   updated_at DateTime   @updatedAt
   inventory  Inventory?
 
-  store   Store          @relation(fields: [store_id], references: [id], onDelete: Cascade)
-  variant ProductVariant @relation(fields: [variant_id], references: [id])
+  store     Store          @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  variant   ProductVariant @relation(fields: [variant_id], references: [id])
+  product   Product?       @relation(fields: [productId], references: [id])
+  productId String?
 
   @@unique([store_id, variant_id])
 }

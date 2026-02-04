@@ -93,6 +93,7 @@ export type Category = {
   name: string;
   description: string;
   is_active: boolean;
+  level: number;
   created_at: Date;
   updated_at: Date;
   Products?: Product[];

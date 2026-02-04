@@ -13,14 +13,38 @@ import {
   createCategory as createDbCategory,
   updateCategory as updateDbCategory,
   deleteCategory as deleteDbCategory,
+  getCategoriesCount as fetchCategoriesCount,
 } from "../models/category.model.js";
+
+// GET CATEGORIES COUNT
+export const getCategoriesCount = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const count = await fetchCategoriesCount();
+
+    return res.status(200).json(
+      new APIResponse("success", "Categories count fetched successfully!", {
+        count,
+      }),
+    );
+  },
+);
 
 // GET ALL CATEGORIES
 export const getAllCategories = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     // TODO: Add pagination
 
-    const categories = await fetchAllCategories();
+    const queries = req.query;
+
+    const categories = await fetchAllCategories({
+      ...queries,
+      is_active:
+        queries.is_active === "true"
+          ? true
+          : queries.is_active === "false"
+            ? false
+            : undefined,
+    });
     if (!categories)
       return next(new ApiError(404, "DB_ERROR", "Couldn't get categories!"));
 
@@ -30,10 +54,10 @@ export const getAllCategories = asyncHandler(
         new APIResponse(
           "success",
           "Categories fetched successfully!",
-          categories
-        )
+          categories,
+        ),
       );
-  }
+  },
 );
 
 // GET CATEGORY
@@ -50,9 +74,9 @@ export const getCategory = asyncHandler(
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Category fetched successfully!", category)
+        new APIResponse("success", "Category fetched successfully!", category),
       );
-  }
+  },
 );
 
 // CREATE CATEGORY
@@ -61,10 +85,12 @@ export const createCategory = asyncHandler(
     const data = req.body as z.infer<typeof categoryFormSchema>;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
-    const { name, parent_id, image, description, sort_order, is_active } = data;
+    const { name, parent_id, is_active } = data;
+
+    console.log(parent_id);
 
     // check if category name already exists
     const existingCategory: Category | null = await fetchCategory({ name });
@@ -86,10 +112,8 @@ export const createCategory = asyncHandler(
       name,
       slug,
       parent_id,
-      level: 0,
-      image,
-      description,
-      sort_order,
+      level: 1,
+      sort_order: 1,
       is_active,
       created_at: new Date(),
       updated_at: new Date(),
@@ -99,15 +123,18 @@ export const createCategory = asyncHandler(
     if (parent_id) {
       const parent = await fetchCategory({ id: parent_id });
       if (!parent)
-        return next(new ApiError(404, "DB_ERROR", "Parent not found!"));
+        return next(
+          new ApiError(404, "DB_ERROR", "Parent category doesn't exist!"),
+        );
 
       const level = parent.level + 1;
       if (level > 5)
         return next(
-          new ApiError(400, "DB_ERROR", "This category can't have childrens!")
+          new ApiError(400, "DB_ERROR", "This category can't have childrens!"),
         );
 
       newCategoryData.level = level;
+      newCategoryData.sort_order = parent.sort_order + 1;
     }
 
     const newCategory = await createDbCategory(newCategoryData);
@@ -121,10 +148,10 @@ export const createCategory = asyncHandler(
         new APIResponse(
           "success",
           "Category created successfully!",
-          newCategory
-        )
+          newCategory,
+        ),
       );
-  }
+  },
 );
 
 // UPDATE CATEGORY
@@ -138,7 +165,7 @@ export const updateCategory = asyncHandler(
     const data = req.body as Partial<Category>;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
     const existingCategory: Category | null = await fetchCategory({ id });
@@ -171,15 +198,19 @@ export const updateCategory = asyncHandler(
             new ApiError(
               400,
               "INVALID_DATA",
-              "Root categories must have no parent!"
-            )
+              "Root categories must have no parent!",
+            ),
           );
         data.parent_id = null;
       }
 
       if (data.level > 0 && !data.parent_id)
         return next(
-          new ApiError(400, "INVALID_DATA", "Subcategories must have a parent!")
+          new ApiError(
+            400,
+            "INVALID_DATA",
+            "Subcategories must have a parent!",
+          ),
         );
 
       if (data.parent_id) {
@@ -192,8 +223,8 @@ export const updateCategory = asyncHandler(
             new ApiError(
               400,
               "INVALID_DATA",
-              "Category level must be parent level + 1"
-            )
+              "Category level must be parent level + 1",
+            ),
           );
       }
     }
@@ -212,7 +243,7 @@ export const updateCategory = asyncHandler(
 
     const updatedCategory = await updateDbCategory(
       existingCategory.id,
-      updatedCategoryData
+      updatedCategoryData,
     );
     if (!updatedCategory)
       return next(new ApiError(500, "DB_ERROR", "Couldn't update category!"));
@@ -223,10 +254,10 @@ export const updateCategory = asyncHandler(
         new APIResponse(
           "success",
           "Category updated successfully!",
-          updatedCategory
-        )
+          updatedCategory,
+        ),
       );
-  }
+  },
 );
 
 // DELETE CATEGORY
@@ -247,5 +278,5 @@ export const deleteCategory = asyncHandler(
     return res
       .status(200)
       .json(new APIResponse("success", "Category deleted successfully!"));
-  }
+  },
 );

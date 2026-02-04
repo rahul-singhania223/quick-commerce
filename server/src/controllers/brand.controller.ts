@@ -12,23 +12,55 @@ import {
   getBrand as fetchBrand,
   updateBrand as updateDbBrand,
   deleteBrand as deleteDbBrand,
+  getBrandsCount as fetchBrandsCount,
 } from "../models/brand.model.js";
 
 import slugify from "slugify";
+
+// GET BRANDS COUNT
+export const getBrandsCount = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const count = await fetchBrandsCount();
+
+    return res.status(200).json(
+      new APIResponse("success", "Brands count fetched successfully!", {
+        count: count,
+      }),
+    );
+  },
+);
 
 // GET ALL BRANDS
 export const getAllBrands = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     // TODO: Add pagination
 
-    const brands = await fetchAllBrands();
+    // query
+    const query = req.query as any;
+    const params: { is_active?: boolean } = { is_active: undefined };
+    if (query.is_active) {
+      params.is_active =
+        query.is_active === "true"
+          ? true
+          : query.is_active === "false"
+            ? false
+            : undefined;
+    }
+
+    const brands = await fetchAllBrands({
+      is_active: params.is_active,
+      sort_name: query.name,
+      created_at: query.created_at,
+      search: query.search,
+    });
+
     if (!brands)
       return next(new ApiError(404, "DB_ERROR", "Couldn't get brands!"));
 
     return res
       .status(200)
       .json(new APIResponse("success", "Brands fetched successfully!", brands));
-  }
+  },
 );
 
 // GET BRAND
@@ -44,7 +76,7 @@ export const getBrand = asyncHandler(
     return res
       .status(200)
       .json(new APIResponse("success", "Brand fetched successfully!", brand));
-  }
+  },
 );
 
 // CREATE BRAND
@@ -53,10 +85,10 @@ export const createBrand = asyncHandler(
     const data = req.body as z.infer<typeof brandFormSchema>;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
-    const { name, logo, description, is_active } = data;
+    const { name, logo, is_active } = data;
 
     // @ts-ignore
     const slug = slugify.default(name, {
@@ -66,7 +98,7 @@ export const createBrand = asyncHandler(
       strict: true,
     });
 
-    const existingBrand: Brand  | null = await fetchBrand({ name });
+    const existingBrand: Brand | null = await fetchBrand({ name });
     if (existingBrand)
       return next(new ApiError(400, "DB_ERROR", "Brand already exists!"));
 
@@ -75,7 +107,6 @@ export const createBrand = asyncHandler(
       name,
       slug,
       logo: logo,
-      description: description,
       is_active,
       created_at: new Date(),
       updated_at: new Date(),
@@ -88,9 +119,9 @@ export const createBrand = asyncHandler(
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Brand created successfully!", newBrand)
+        new APIResponse("success", "Brand created successfully!", newBrand),
       );
-  }
+  },
 );
 
 // UPDATE BRAND
@@ -100,7 +131,7 @@ export const updateBrand = asyncHandler(
     const id = req.params.id;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
     if (!id || !isValidUUID(id))
@@ -134,7 +165,7 @@ export const updateBrand = asyncHandler(
 
     const updatedBrand = await updateDbBrand(
       existingBrand.id,
-      updatedBrandData
+      updatedBrandData,
     );
     if (!updatedBrand)
       return next(new ApiError(500, "DB_ERROR", "Couldn't update brand!"));
@@ -142,9 +173,9 @@ export const updateBrand = asyncHandler(
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Brand updated successfully!", updatedBrand)
+        new APIResponse("success", "Brand updated successfully!", updatedBrand),
       );
-  }
+  },
 );
 
 // DELETE BRAND
@@ -165,5 +196,5 @@ export const deleteBrand = asyncHandler(
     return res
       .status(200)
       .json(new APIResponse("success", "Brand deleted successfully!"));
-  }
+  },
 );

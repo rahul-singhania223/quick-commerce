@@ -14,18 +14,5 @@ export const categoryFormSchema = z.object({
     .nullable()
     .default(null),
 
-  // level: z.number().int().min(0).max(5), // hard cap to prevent insane nesting
-
-  image: z
-    .string()
-    .url("Invalid image URL")
-    .optional()
-    .nullable()
-    .default(null),
-
-  description: z.string().max(255).optional().nullable().default(null),
-
-  sort_order: z.number().int().min(0).optional().default(0),
-
   is_active: z.boolean().optional().default(true),
 });

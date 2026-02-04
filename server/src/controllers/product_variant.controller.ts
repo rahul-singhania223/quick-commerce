@@ -14,16 +14,19 @@ import {
   deleteProductVariant as deleteDbProductVariant,
 } from "../models/product_variant.model.js";
 import { getProduct as fetchProduct } from "../models/product.model.js";
+import slugify from "slugify";
 
 // GET ALL PRODUCT VARIANTS
 export const getAllProductVariants = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     // TODO: Add pagination
 
-    const productVariants = await fetchAllProductVariants();
+    const query = req.query;
+
+    const productVariants = await fetchAllProductVariants(query);
     if (!productVariants)
       return next(
-        new ApiError(404, "DB_ERROR", "Couldn't get product variants!")
+        new ApiError(404, "DB_ERROR", "Couldn't get product variants!"),
       );
 
     return res
@@ -32,10 +35,10 @@ export const getAllProductVariants = asyncHandler(
         new APIResponse(
           "success",
           "Product variants fetched successfully!",
-          productVariants
-        )
+          productVariants,
+        ),
       );
-  }
+  },
 );
 
 // GET PRODUCT VARIANT
@@ -44,7 +47,7 @@ export const getProductVariant = asyncHandler(
     const id = req.params.id;
     if (!id || !isValidUUID(id))
       return next(
-        new ApiError(400, "INVALID_DATA", "Invalid product variant ID!")
+        new ApiError(400, "INVALID_DATA", "Invalid product variant ID!"),
       );
 
     const productVariant = await fetchProductVariant({ id });
@@ -57,10 +60,10 @@ export const getProductVariant = asyncHandler(
         new APIResponse(
           "success",
           "Product variant fetched successfully!",
-          productVariant
-        )
+          productVariant,
+        ),
       );
-  }
+  },
 );
 
 // CREATE PRODUCT VARIANT
@@ -69,11 +72,20 @@ export const createProductVariant = asyncHandler(
     const data = req.body as z.infer<typeof createProductVariantSchema>;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
+    // @ts-ignore
+    const sku = slugify.default(data.name, {
+      replacement: "-",
+      remove: undefined,
+      lower: true,
+      strict: true,
+      trim: true,
+    });
+
     // check if product variant exists
-    const existingProductVariant = await fetchProductVariant({ sku: data.sku });
+    const existingProductVariant = await fetchProductVariant({ sku: sku });
     if (existingProductVariant)
       return next(new ApiError(400, "DB_ERROR", "Product variant exists!"));
 
@@ -82,7 +94,7 @@ export const createProductVariant = asyncHandler(
     if (!existingProduct)
       return next(new ApiError(400, "DB_ERROR", "Product not found!"));
 
-    const { product_id, name, sku, mrp, unit, image, weight, is_active } = data;
+    const { product_id, name, mrp, unit, image, weight, is_active } = data;
 
     const newProductVariantData: ProductVariant = {
       id: v4(),
@@ -108,10 +120,10 @@ export const createProductVariant = asyncHandler(
         new APIResponse(
           "success",
           "Product variant created successfully!",
-          productVariant
-        )
+          productVariant,
+        ),
       );
-  }
+  },
 );
 
 // UPDATE PRODUCT VARIANT
@@ -120,13 +132,13 @@ export const updateProductVariant = asyncHandler(
     const id = req.params.id;
     if (!id || !isValidUUID(id))
       return next(
-        new ApiError(400, "INVALID_DATA", "Invalid product variant ID!")
+        new ApiError(400, "INVALID_DATA", "Invalid product variant ID!"),
       );
 
     const data = req.body as Partial<ProductVariant>;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
     const existingProductVariant = await fetchProductVariant({ id });
@@ -155,11 +167,11 @@ export const updateProductVariant = asyncHandler(
 
     const updatedProductVariant = await updateDbProductVariant(
       existingProductVariant.id,
-      updateProductVariantData
+      updateProductVariantData,
     );
     if (!updatedProductVariant)
       return next(
-        new ApiError(500, "DB_ERROR", "Couldn't update product variant!")
+        new ApiError(500, "DB_ERROR", "Couldn't update product variant!"),
       );
 
     return res
@@ -168,10 +180,10 @@ export const updateProductVariant = asyncHandler(
         new APIResponse(
           "success",
           "Product variant updated successfully!",
-          updatedProductVariant
-        )
+          updatedProductVariant,
+        ),
       );
-  }
+  },
 );
 
 // DELETE PRODUCT VARIANT
@@ -180,27 +192,28 @@ export const deleteProductVariant = asyncHandler(
     const id = req.params.id;
     if (!id || !isValidUUID(id))
       return next(
-        new ApiError(400, "INVALID_DATA", "Invalid product variant ID!")
+        new ApiError(400, "INVALID_DATA", "Invalid product variant ID!"),
       );
 
-    const existingProductVariant: ProductVariant | null = await fetchProductVariant({
-      id,
-    });
+    const existingProductVariant: ProductVariant | null =
+      await fetchProductVariant({
+        id,
+      });
     if (!existingProductVariant)
       return next(new ApiError(404, "DB_ERROR", "Product variant not found!"));
 
     const deletedProductVariant = await deleteDbProductVariant(
-      existingProductVariant.id
+      existingProductVariant.id,
     );
     if (!deletedProductVariant)
       return next(
-        new ApiError(500, "DB_ERROR", "Couldn't delete product variant!")
+        new ApiError(500, "DB_ERROR", "Couldn't delete product variant!"),
       );
 
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Product variant deleted successfully!")
+        new APIResponse("success", "Product variant deleted successfully!"),
       );
-  }
+  },
 );

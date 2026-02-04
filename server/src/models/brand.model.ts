@@ -1,28 +1,97 @@
 import db from "../configs/db.config.js";
-import { Brand } from "../generated/prisma/client.js";
+import { Brand, Prisma } from "../generated/prisma/client.js";
 
 // create brand
 export const createBrand = async (data: Brand) => {
   try {
-    const brand = await db.brand.create({ data });
+    const brand = await db.brand.create({
+      data,
+      include: { _count: { select: { products: true } } },
+    });
     return brand;
   } catch (error) {
     return null;
   }
 };
 
-// get all brands
-export const getAllBrands = async () => {
+// GET BRANDS COUNT
+export const getBrandsCount = async () => {
   try {
-    // TODO: Add pagination
-
-    const brands = await db.brand.findMany({});
-    return brands;
+    const count = await db.brand.count();
+    return count;
   } catch (error) {
-    console.log(error);
     return null;
   }
 };
+
+// get all brands
+type SortOrder = "asc" | "desc";
+
+interface QueryParams {
+  is_active?: boolean;
+  sort_name?: SortOrder; // A–Z / Z–A
+  created_at?: SortOrder;
+  search?: string;
+}
+
+export const getAllBrands = async ({
+  is_active,
+  sort_name,
+  created_at,
+  search,
+}: QueryParams = {}) => {
+  try {
+    // TODO: Add pagination
+
+    const where: Prisma.BrandWhereInput = {};
+
+    // filter: active / inactive
+    if (is_active !== undefined) {
+      where.is_active = is_active;
+    }
+
+    // search: name OR slug
+    if (search && search.trim() !== "") {
+      where.OR = [
+        {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          slug: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    // sorting
+    const orderBy: Prisma.BrandOrderByWithRelationInput = {
+      created_at: created_at || "desc",
+    };
+
+    if (sort_name) {
+      orderBy.name = sort_name;
+    }
+
+    const brands = await db.brand.findMany({
+      where,
+      orderBy,
+      include: {
+        _count: { select: { products: true } },
+      },
+    });
+
+    return brands;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 
 // get brand
 export const getBrand = async ({
@@ -52,7 +121,11 @@ export const getBrand = async ({
 // update brand
 export const updateBrand = async (id: string, data: Brand) => {
   try {
-    const brand = await db.brand.update({ where: { id }, data });
+    const brand = await db.brand.update({
+      where: { id },
+      data,
+      include: { _count: { select: { products: true } } },
+    });
     return brand;
   } catch (error) {
     return null;

@@ -14,17 +14,29 @@ import {
   updateProduct as updateDbProduct,
   deleteProduct as deleteDbProduct,
   searchProducts as searchDbProducts,
+  fetchProductsCount,
 } from "../models/product.model.js";
 
 import { getCategory as fetchCategory } from "../models/category.model.js";
 import { getBrand as fetchBrand } from "../models/brand.model.js";
 
+// GET PRODUCT COUNT
+export const getProductsCount = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const count = await fetchProductsCount();
+
+    return res
+      .status(200)
+      .json(
+        new APIResponse("success", "Products fetched successfully!", { count }),
+      );
+  },
+);
+
 // SEARCH PRODUCTS
 export const searchProducts = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const query = req.query;
-
-    console.log(query);
 
     if (!query || Object.keys(query).length === 0)
       return res
@@ -41,10 +53,10 @@ export const searchProducts = asyncHandler(
         new APIResponse(
           "success",
           "Products fetched successfully!",
-          searchResults
-        )
+          searchResults,
+        ),
       );
-  }
+  },
 );
 
 // GET ALL PRODUCTS
@@ -52,16 +64,26 @@ export const getAllProducts = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     // TODO: Add pagination
 
-    const products = await fetchAllProducts();
+    const queries = req.query;
+
+    const products = await fetchAllProducts({
+      ...queries,
+      is_active:
+        queries.is_active === "true"
+          ? true
+          : queries.is_active === "false"
+            ? false
+            : undefined,
+    });
     if (!products)
       return next(new ApiError(404, "DB_ERROR", "Couldn't get products!"));
 
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Products fetched successfully!", products)
+        new APIResponse("success", "Products fetched successfully!", products),
       );
-  }
+  },
 );
 
 // GET PRODUCT
@@ -78,9 +100,9 @@ export const getProduct = asyncHandler(
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Product fetched successfully!", product)
+        new APIResponse("success", "Product fetched successfully!", product),
       );
-  }
+  },
 );
 
 // CREATE PRODUCT
@@ -89,13 +111,15 @@ export const createProduct = asyncHandler(
     const data = req.body as z.infer<typeof productFormSchema>;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
-    const { name, description, category_id, brand_id, is_active } = data;
+    const { name, description, category_id, brand_id, is_active, image } = data;
 
     // check if category exists
-    const existingCategory: Category | null = await fetchCategory({ id: category_id });
+    const existingCategory: Category | null = await fetchCategory({
+      id: category_id,
+    });
     if (!existingCategory)
       return next(new ApiError(400, "DB_ERROR", "Category not found!"));
 
@@ -109,6 +133,7 @@ export const createProduct = asyncHandler(
     const newProductData: Product = {
       id: v4(),
       name,
+      image,
       description,
       category_id,
       brand_id,
@@ -137,9 +162,9 @@ export const createProduct = asyncHandler(
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Product created successfully!", newProduct)
+        new APIResponse("success", "Product created successfully!", newProduct),
       );
-  }
+  },
 );
 
 // UPDATE PRODUCT
@@ -152,7 +177,7 @@ export const updateProduct = asyncHandler(
     const data = req.body as Partial<Product>;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
     // check if product exists
@@ -204,10 +229,10 @@ export const updateProduct = asyncHandler(
         new APIResponse(
           "success",
           "Product updated successfully!",
-          updatedProduct
-        )
+          updatedProduct,
+        ),
       );
-  }
+  },
 );
 
 // DELETE PRODUCT
@@ -228,5 +253,5 @@ export const deleteProduct = asyncHandler(
     return res
       .status(200)
       .json(new APIResponse("success", "Product deleted successfully!"));
-  }
+  },
 );

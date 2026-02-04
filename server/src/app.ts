@@ -51,8 +51,8 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/store", storeRouter);
 app.use("/api/v1/zone", zoneRouter);
-app.use("/api/v1/brand", brandRouter);
-app.use("/api/v1/category", categoryRouter);
+app.use("/api/v1/brands", brandRouter);
+app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/product", productRouter);
 app.use("/api/v1/product-variant", productVariantRouter);
 app.use("/api/v1/store-product", storeProductRouter);

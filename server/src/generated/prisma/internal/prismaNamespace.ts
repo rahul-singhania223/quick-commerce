@@ -1248,6 +1248,7 @@ export const ProductScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   description: 'description',
+  image: 'image',
   category_id: 'category_id',
   brand_id: 'brand_id',
   is_active: 'is_active',
@@ -1264,8 +1265,6 @@ export const CategoryScalarFieldEnum = {
   slug: 'slug',
   parent_id: 'parent_id',
   level: 'level',
-  image: 'image',
-  description: 'description',
   is_active: 'is_active',
   sort_order: 'sort_order',
   created_at: 'created_at',
@@ -1280,7 +1279,6 @@ export const BrandScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   logo: 'logo',
-  description: 'description',
   is_active: 'is_active',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -1315,7 +1313,8 @@ export const StoreProductScalarFieldEnum = {
   is_available: 'is_available',
   is_listed: 'is_listed',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  productId: 'productId'
 } as const
 
 export type StoreProductScalarFieldEnum = (typeof StoreProductScalarFieldEnum)[keyof typeof StoreProductScalarFieldEnum]
