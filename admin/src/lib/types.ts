@@ -227,6 +227,65 @@ export interface Address {
   user?: User;
 }
 
+export type LngLat = [number, number];
+
+export interface GeoJSONPolygon {
+  type: "Polygon";
+  coordinates: LngLat[][];
+}
+
+export type ZoneTimeBucket = "ALL_DAY" | "PEAK" | "OFF_PEAK";
+
+export interface ZoneStat {
+  bucket: ZoneTimeBucket;
+  avgTime: number; // minutes
+  p90Time: number; // minutes
+  sampleSize: number;
+  lastComputedAt: string; // ISO string
+}
+
+export interface Zone {
+  id: string;
+  name: string;
+  city: string;
+
+  boundary: GeoJSONPolygon;
+
+  is_active: boolean;
+
+  stats: ZoneStat[];
+
+  createdAt: string;
+  updatedAt: string;
+
+  _count?: {
+    stores?: number;
+  };
+}
+
+export interface ZoneWithRelations extends Zone {
+  stores?: Store[];
+}
+
+export interface CreateZoneInput {
+  name: string;
+  city: string;
+  boundary: GeoJSONPolygon;
+  is_active?: boolean;
+}
+
+export interface ZoneETA {
+  zoneId: string;
+  zoneName: string;
+  city: string;
+
+  etaMinutes: number;
+  etaRange?: {
+    min: number;
+    max: number;
+  };
+}
+
 export interface Product {
   id: UUID;
 }

@@ -20,6 +20,11 @@ export default function DashboardPage() {
             Products
           </div>{" "}
         </Link>
+        <Link href={"/zones"}>
+          <div className="h-20 rounded-lg flex items-center justify-center bg-white border shadow font-semibold text-xl">
+            Zones
+          </div>{" "}
+        </Link>
       </div>
     </div>
   );

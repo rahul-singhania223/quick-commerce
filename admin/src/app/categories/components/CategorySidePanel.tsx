@@ -169,7 +169,7 @@ export default function CategorySidePanel({
                   <FormControl>
                     <SelectInput
                       options={parentCategoriesOptions}
-                      selectedValue={field.value ?? ""}
+                      selectedValue={getCategory(field.value ?? "")?.name ?? ""}
                       onSelect={(value) => field.onChange(value)}
                       isLoading={isSaving || parentCategoriesLoading}
                       onSearch={(q) => onParentCategorySearch(q)}

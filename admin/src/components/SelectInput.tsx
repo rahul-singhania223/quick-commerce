@@ -87,15 +87,12 @@ export default function SelectInput({
 
           <div className="flex items-center gap-4">
             {selectedValue && (
-              <Button
+              <span
                 onClick={clearSelection}
-                type="button"
-                variant={"ghost"}
-                size={"icon"}
                 className="cursor-pointer"
               >
-                <XCircle className="text-destructive/70" />
-              </Button>
+                <XCircle className="text-destructive/70 size-4" />
+              </span>
             )}
             <ChevronDown
               size={14}
@@ -128,8 +125,8 @@ export default function SelectInput({
                   <CommandItem
                     key={option.label}
                     value={option.label}
-                    onSelect={(currentValue) => {
-                      onSelect(currentValue);
+                    onSelect={() => {
+                      onSelect(option.value);
                       setOpen(false);
                     }}
                     className="flex items-center justify-between text-[13px]"
