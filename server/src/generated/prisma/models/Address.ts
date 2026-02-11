@@ -677,14 +677,6 @@ export type EnumAddressLabelFieldUpdateOperationsInput = {
   set?: $Enums.AddressLabel
 }
 
-export type FloatFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type AddressCreateWithoutUserInput = {
   id?: string
   label?: $Enums.AddressLabel

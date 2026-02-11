@@ -1,53 +1,40 @@
-import { Button } from "@/src/components/ui/button";
+import { Colors } from "@/src/constants/theme";
 import { Link } from "expo-router";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function NavbarWithoutAuth() {
   return (
     <View style={styles.container}>
-      <View style={{ flex: 1, width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href={"/home"} style={styles.logo}>
+      <Link href={"/home"}>
+        <TouchableOpacity>
           <Image
+            style={styles.logo}
             source={require("@/src/assets/images/logo.png")}
-            style={styles.logoImage}
           />
-        </Link>
+        </TouchableOpacity>
+      </Link>
 
-        <Button>Register/Login</Button>
-      </View>
+      <Link href={"/auth"}>
+        <TouchableOpacity>
+          <Text style={styles.actionText}>Sign In</Text>
+        </TouchableOpacity>
+      </Link>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    // height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingBottom: 12,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    gap: 8,
-    zIndex: 10,
-    backgroundColor: "#fff",
-    height: 80,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2, // Android
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
-
-  logo: {
-    width: 100,
-    height: 32,
-  },
-  logoImage: {
-    width: "100%",
-    height: "100%",
-    objectFit: "contain",
-  },
+  logo: { width: 100, height: 28, objectFit: "contain" },
+  actionText: { fontSize: 14, fontWeight: "500", color: Colors.primary },
 });

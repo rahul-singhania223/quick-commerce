@@ -4,7 +4,7 @@ import z from "zod";
 import { ApiError } from "../utils/api-error.js";
 import asyncHandler from "../utils/async-handler.js";
 import { v4, validate as isValidUUID } from "uuid";
-import { Brand } from "../generated/prisma/client.js";
+import { Brand, Prisma } from "../generated/prisma/client.js";
 import { APIResponse } from "../utils/api-response.util.js";
 import {
   createBrand as createDbBrand,
@@ -12,46 +12,37 @@ import {
   getBrand as fetchBrand,
   updateBrand as updateDbBrand,
   deleteBrand as deleteDbBrand,
-  getBrandsCount as fetchBrandsCount,
+  getBrandStats as fetchBrandsStats,
+  increaseBrandCount,
+  decreaseBrandCount,
 } from "../models/brand.model.js";
-
 import slugify from "slugify";
 
-// GET BRANDS COUNT
-export const getBrandsCount = asyncHandler(
+// GET BRANDS STATS
+export const getBrandStats = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const count = await fetchBrandsCount();
+    const stats = await fetchBrandsStats();
 
-    return res.status(200).json(
-      new APIResponse("success", "Brands count fetched successfully!", {
-        count: count,
-      }),
-    );
+    return res
+      .status(200)
+      .json(
+        new APIResponse("success", "Brands count fetched successfully!", stats),
+      );
   },
 );
 
 // GET ALL BRANDS
 export const getAllBrands = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // TODO: Add pagination
-
     // query
-    const query = req.query as any;
-    const params: { is_active?: boolean } = { is_active: undefined };
-    if (query.is_active) {
-      params.is_active =
-        query.is_active === "true"
-          ? true
-          : query.is_active === "false"
-            ? false
-            : undefined;
-    }
+    const query = req.query;
+    const is_active = query.is_active
+      ? Boolean(Number(query.is_active))
+      : undefined;
 
     const brands = await fetchAllBrands({
-      is_active: params.is_active,
-      sort_name: query.name,
-      created_at: query.created_at,
-      search: query.search,
+      ...query,
+      is_active,
     });
 
     if (!brands)
@@ -98,23 +89,28 @@ export const createBrand = asyncHandler(
       strict: true,
     });
 
-    const existingBrand: Brand | null = await fetchBrand({ name });
+    const existingBrand = await fetchBrand({ name });
     if (existingBrand)
       return next(new ApiError(400, "DB_ERROR", "Brand already exists!"));
 
-    const newBrandData: Brand = {
+    const newBrandData: Prisma.BrandCreateInput = {
       id: v4(),
       name,
       slug,
       logo: logo,
       is_active,
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
-    const newBrand = await createDbBrand(newBrandData);
+    const [newBrand, updatedStats] = await Promise.all([
+      createDbBrand(newBrandData),
+      increaseBrandCount(),
+    ]);
+
     if (!newBrand)
       return next(new ApiError(500, "DB_ERROR", "Couldn't create brand!"));
+
+    if (!updatedStats)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
 
     return res
       .status(200)
@@ -137,14 +133,17 @@ export const updateBrand = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid brand ID!"));
 
-    const existingBrand: Brand | null = await fetchBrand({ id });
+    const { name } = data;
+
+    const [existingBrand, existingBrandWithNewName] = await Promise.all([
+      fetchBrand({ id }),
+      name ? fetchBrand({ name }) : null,
+    ]);
+
     if (!existingBrand)
       return next(new ApiError(404, "DB_ERROR", "Brand not found!"));
 
-    const { name } = data;
-
     if (name && name !== existingBrand.name) {
-      const existingBrandWithNewName: Brand | null = await fetchBrand({ name });
       if (existingBrandWithNewName)
         return next(new ApiError(400, "DB_ERROR", "Brand already exists!"));
 
@@ -157,10 +156,8 @@ export const updateBrand = asyncHandler(
       });
     }
 
-    const updatedBrandData: Brand = {
-      ...existingBrand,
+    const updatedBrandData: Prisma.BrandUpdateInput = {
       ...data,
-      updated_at: new Date(),
     };
 
     const updatedBrand = await updateDbBrand(
@@ -185,13 +182,21 @@ export const deleteBrand = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid brand ID!"));
 
-    const existingBrand: Brand | null = await fetchBrand({ id });
+    const existingBrand = await fetchBrand({ id });
+
     if (!existingBrand)
       return next(new ApiError(404, "DB_ERROR", "Brand not found!"));
 
-    const deletedBrand = await deleteDbBrand(existingBrand.id);
+    const [deletedBrand, updatedStats] = await Promise.all([
+      deleteDbBrand(id),
+      decreaseBrandCount(),
+    ]);
+
     if (!deletedBrand)
       return next(new ApiError(500, "DB_ERROR", "Couldn't delete brand!"));
+
+    if (!updatedStats)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
 
     return res
       .status(200)

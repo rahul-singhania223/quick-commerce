@@ -5,7 +5,7 @@ import { ApiError } from "../utils/api-error.js";
 import { v4, validate as isValidUUID } from "uuid";
 import { productFormSchema } from "../schemas/product.schema.js";
 import z from "zod";
-import { Category, Product } from "../generated/prisma/client.js";
+import { Category, Prisma, Product } from "../generated/prisma/client.js";
 import slugify from "slugify";
 import {
   createProduct as createDbProduct,
@@ -14,21 +14,32 @@ import {
   updateProduct as updateDbProduct,
   deleteProduct as deleteDbProduct,
   searchProducts as searchDbProducts,
-  fetchProductsCount,
 } from "../models/product.model.js";
 
-import { getCategory as fetchCategory } from "../models/category.model.js";
+import {
+  getCategory as fetchCategory,
+  updateCategory,
+} from "../models/category.model.js";
 import { getBrand as fetchBrand } from "../models/brand.model.js";
+import {
+  decreaseProductCount,
+  fetchProductStats,
+  increaseProductCount,
+} from "../models/product_stats.model.js";
 
-// GET PRODUCT COUNT
-export const getProductsCount = asyncHandler(
+// GET PRODUCT STATS
+export const getProductStats = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const count = await fetchProductsCount();
+    const stats = await fetchProductStats();
+    if (!stats)
+      return next(
+        new ApiError(404, "DB_ERROR", "Couldn't get products stats!"),
+      );
 
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Products fetched successfully!", { count }),
+        new APIResponse("success", "Products fetched successfully!", stats),
       );
   },
 );
@@ -62,18 +73,14 @@ export const searchProducts = asyncHandler(
 // GET ALL PRODUCTS
 export const getAllProducts = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // TODO: Add pagination
-
     const queries = req.query;
+    const is_active = queries.is_active
+      ? Boolean(Number(queries.is_active))
+      : undefined;
 
     const products = await fetchAllProducts({
       ...queries,
-      is_active:
-        queries.is_active === "true"
-          ? true
-          : queries.is_active === "false"
-            ? false
-            : undefined,
+      is_active,
     });
     if (!products)
       return next(new ApiError(404, "DB_ERROR", "Couldn't get products!"));
@@ -116,34 +123,43 @@ export const createProduct = asyncHandler(
 
     const { name, description, category_id, brand_id, is_active, image } = data;
 
-    // check if category exists
-    const existingCategory: Category | null = await fetchCategory({
-      id: category_id,
-    });
+    // category and brand validation
+    if (!category_id || !isValidUUID(category_id))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid category ID!"));
+
+    if (brand_id && !isValidUUID(brand_id))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid brand ID!"));
+
+    const [existingCategory, existingBrand] = await Promise.all([
+      fetchCategory({ id: category_id }),
+      brand_id ? fetchBrand({ id: brand_id }) : null,
+    ]);
+
     if (!existingCategory)
       return next(new ApiError(400, "DB_ERROR", "Category not found!"));
 
-    // check if brand exists
+    // // check if brand exists
     if (brand_id) {
-      const existingBrand = await fetchBrand({ id: brand_id });
       if (!existingBrand)
         return next(new ApiError(400, "DB_ERROR", "Brand not found!"));
     }
 
-    const newProductData: Product = {
+    const newProductData: Prisma.ProductCreateInput = {
       id: v4(),
       name,
       image,
       description,
-      category_id,
-      brand_id,
+      category: {
+        connect: { id: existingCategory.id },
+      },
+      brand:
+        brand_id && existingBrand
+          ? { connect: { id: existingBrand.id } }
+          : undefined,
       is_active,
       slug: "",
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
-    // create slug
     // @ts-ignore
     newProductData.slug = slugify.default(newProductData.name, {
       replacement: "-",
@@ -154,9 +170,24 @@ export const createProduct = asyncHandler(
     });
 
     // create new product
-    const newProduct = await createDbProduct(newProductData);
+    const [newProduct, updatedCategory, updatedStats] = await Promise.all([
+      createDbProduct(newProductData),
+      updateCategory(existingCategory.id, {
+        products_count: existingCategory.products_count
+          ? existingCategory.products_count + 1
+          : 1,
+      }),
+      increaseProductCount(),
+    ]);
+
     if (!newProduct)
       return next(new ApiError(400, "DB_ERROR", "Couldn't create product!"));
+
+    if (!updatedCategory)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update category!"));
+
+    if (!updatedStats)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
 
     // return response
     return res
@@ -180,26 +211,27 @@ export const updateProduct = asyncHandler(
         new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
-    // check if product exists
-    const existingProduct = await fetchProduct({ id });
+    const { brand_id, category_id } = data;
+
+    if (brand_id && !isValidUUID(brand_id))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid brand ID!"));
+
+    if (category_id && !isValidUUID(category_id))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid category ID!"));
+
+    const [existingProduct, existingCategory, existingBrand] =
+      await Promise.all([
+        fetchProduct({ id }),
+        category_id ? fetchCategory({ id: category_id }) : null,
+        brand_id ? fetchBrand({ id: brand_id }) : null,
+      ]);
+
     if (!existingProduct)
       return next(new ApiError(404, "DB_ERROR", "Product not found!"));
-
-    // check if category exists
-    if (data.category_id) {
-      const existingCategory: Category | null = await fetchCategory({
-        id: data.category_id,
-      });
-      if (!existingCategory)
-        return next(new ApiError(400, "DB_ERROR", "Category not found!"));
-    }
-
-    // check if brand exists
-    if (data.brand_id) {
-      const existingBrand = await fetchBrand({ id: data.brand_id });
-      if (!existingBrand)
-        return next(new ApiError(400, "DB_ERROR", "Brand not found!"));
-    }
+    if (category_id && !existingCategory)
+      return next(new ApiError(400, "DB_ERROR", "Category not found!"));
+    if (brand_id && !existingBrand)
+      return next(new ApiError(400, "DB_ERROR", "Brand not found!"));
 
     // update slug
     if (data.name && data.name !== existingProduct.name) {
@@ -213,10 +245,8 @@ export const updateProduct = asyncHandler(
       });
     }
 
-    const updatedProductData: Product = {
-      ...existingProduct,
+    const updatedProductData: Prisma.ProductUpdateInput = {
       ...data,
-      updated_at: new Date(),
     };
 
     const updatedProduct = await updateDbProduct(id, updatedProductData);
@@ -242,13 +272,26 @@ export const deleteProduct = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid product ID!"));
 
-    const existingProduct: Product | null = await fetchProduct({ id });
+    const existingProduct = await fetchProduct({ id });
     if (!existingProduct)
       return next(new ApiError(404, "DB_ERROR", "Product not found!"));
 
-    const deletedProduct = await deleteDbProduct(existingProduct.id);
+    const [deletedProduct, updatedCategory, updatedStats] = await Promise.all([
+      deleteDbProduct(existingProduct.id),
+      updateCategory(existingProduct.category_id, {
+        products_count: existingProduct.category.products_count
+          ? existingProduct.category.products_count - 1
+          : 0,
+      }),
+      decreaseProductCount(),
+    ]);
+
     if (!deletedProduct)
       return next(new ApiError(500, "DB_ERROR", "Couldn't delete product!"));
+    if (!updatedCategory)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update category!"));
+    if (!updatedStats)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
 
     return res
       .status(200)

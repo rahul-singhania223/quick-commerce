@@ -10,12 +10,16 @@ import {
   getAllZones,
   getZone,
   getZoneByPosition,
+  getZonesCount,
   updateZone,
 } from "../controllers/zone.controller.js";
 
 import { createZoneSchema } from "../schemas/zone.schema.js";
 
 const router = Router();
+
+// GET ZONES COUNT
+router.get("/count", getZonesCount);
 
 // GET ZONE BY POSITION
 router.get("/position", getZoneByPosition);
@@ -26,13 +30,13 @@ router.get("/", getAllZones);
 // GET ZONE
 router.get("/:id", getZone);
 
-// // CREATE ZONE
+// CREATE ZONE
 router.post(
-  "/create",
+  "/",
   validateForm(createZoneSchema),
-  authorizeUser,
-  authorizeAdmin,
-  createZone
+  // authorizeUser,
+  // authorizeAdmin,
+  createZone,
 );
 
 // UPDATE ZONE
@@ -41,7 +45,7 @@ router.put(
   validateForm(createZoneSchema),
   authorizeUser,
   authorizeAdmin,
-  updateZone
+  updateZone,
 );
 
 // DELETE ZONE

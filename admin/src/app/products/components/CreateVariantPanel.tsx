@@ -28,6 +28,7 @@ import {
 import ImageUploader from "./ImageUploader";
 import { VariantServices } from "@/src/services/variants.services";
 import { toast } from "sonner";
+import { useProductsStore } from "@/src/store/products.store";
 
 // Form Validation Schema
 const variantSchema = z.object({
@@ -57,6 +58,8 @@ export default function CreateVariantPanel({
   onClose,
   //   onSubmit,
 }: CreateVariantPanelProps) {
+  const { getProduct, addProduct } = useProductsStore();
+
   const form = useForm<z.infer<typeof variantSchema>>({
     resolver: zodResolver(variantSchema),
     defaultValues: {
@@ -88,6 +91,15 @@ export default function CreateVariantPanel({
 
       if (res.data) {
         toast.success("Variant created successfully!");
+        const product = getProduct(productId);
+        if (product) {
+          addProduct({
+            ...product,
+            variants_count: product.variants_count
+              ? product.variants_count + 1
+              : 1,
+          });
+        }
         form.reset();
       }
     } finally {

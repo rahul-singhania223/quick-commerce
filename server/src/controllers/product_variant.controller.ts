@@ -13,14 +13,15 @@ import {
   updateProductVariant as updateDbProductVariant,
   deleteProductVariant as deleteDbProductVariant,
 } from "../models/product_variant.model.js";
-import { getProduct as fetchProduct } from "../models/product.model.js";
+import {
+  getProduct as fetchProduct,
+  updateProduct,
+} from "../models/product.model.js";
 import slugify from "slugify";
 
 // GET ALL PRODUCT VARIANTS
 export const getAllProductVariants = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // TODO: Add pagination
-
     const query = req.query;
 
     const productVariants = await fetchAllProductVariants(query);
@@ -84,35 +85,51 @@ export const createProductVariant = asyncHandler(
       trim: true,
     });
 
-    // check if product variant exists
-    const existingProductVariant = await fetchProductVariant({ sku: sku });
-    if (existingProductVariant)
-      return next(new ApiError(400, "DB_ERROR", "Product variant exists!"));
+    const [existingProduct, existingProductVariant] = await Promise.all([
+      fetchProduct({ id: data.product_id }),
+      fetchProductVariant({ slug: sku }),
+    ]);
 
     // check if product exists
-    const existingProduct = await fetchProduct({ id: data.product_id });
     if (!existingProduct)
       return next(new ApiError(400, "DB_ERROR", "Product not found!"));
 
+    // check if product variant exists
+    if (existingProductVariant)
+      return next(new ApiError(400, "DB_ERROR", "Product variant exists!"));
+
     const { product_id, name, mrp, unit, image, weight, is_active } = data;
 
-    const newProductVariantData: ProductVariant = {
+    const newProductVariantData: Prisma.ProductVariantCreateInput = {
       id: v4(),
-      product_id,
+      product: {
+        connect: {
+          id: product_id,
+        },
+      },
       name,
-      sku,
+      slug: sku,
       mrp: new Prisma.Decimal(mrp),
       unit,
       weight: weight ? new Prisma.Decimal(weight) : null,
       image,
       is_active,
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
-    const productVariant = await createDbProductVariant(newProductVariantData);
+    const [productVariant, updatedProduct] = await Promise.all([
+      createDbProductVariant(newProductVariantData),
+      updateProduct(product_id, {
+        variants_count: {
+          increment: 1,
+        },
+      }),
+    ]);
+
     if (!productVariant)
       return next(new ApiError(500, "DB_ERROR", "Couldn't create product!"));
+
+    if (!updatedProduct)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update product!"));
 
     return res
       .status(200)
@@ -141,28 +158,46 @@ export const updateProductVariant = asyncHandler(
         new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
-    const existingProductVariant = await fetchProductVariant({ id });
+    // @ts-ignore
+    const slug = slugify.default(data.name, {
+      replacement: "-",
+      remove: undefined,
+      lower: true,
+      strict: true,
+      trim: true,
+    });
+
+    const [
+      existingProductVariant,
+      existingProduct,
+      existingProductVariantName,
+    ] = await Promise.all([
+      fetchProductVariant({ id }),
+      fetchProduct({ id: data.product_id }),
+      data.name ? fetchProductVariant({ slug }) : null,
+    ]);
+
     if (!existingProductVariant)
       return next(new ApiError(404, "DB_ERROR", "Product variant not found!"));
 
     if (data.product_id) {
-      const existingProduct = await fetchProduct({ id: data.product_id });
       if (!existingProduct)
         return next(new ApiError(400, "DB_ERROR", "Product not found!"));
     }
 
-    if (data.sku) {
-      const existingProductVariant = await fetchProductVariant({
-        sku: data.sku,
-      });
-      if (existingProductVariant)
-        return next(new ApiError(400, "DB_ERROR", "Product variant exists!"));
+    if (data.name) {
+      if (existingProductVariantName)
+        return next(
+          new ApiError(
+            400,
+            "DB_ERROR",
+            "Product variant with this name already exists!",
+          ),
+        );
     }
 
-    const updateProductVariantData: ProductVariant = {
-      ...existingProductVariant,
+    const updateProductVariantData: Prisma.ProductVariantUpdateInput = {
       ...data,
-      updated_at: new Date(),
     };
 
     const updatedProductVariant = await updateDbProductVariant(
@@ -195,20 +230,28 @@ export const deleteProductVariant = asyncHandler(
         new ApiError(400, "INVALID_DATA", "Invalid product variant ID!"),
       );
 
-    const existingProductVariant: ProductVariant | null =
-      await fetchProductVariant({
-        id,
-      });
+    const existingProductVariant = await fetchProductVariant({
+      id,
+    });
     if (!existingProductVariant)
       return next(new ApiError(404, "DB_ERROR", "Product variant not found!"));
 
-    const deletedProductVariant = await deleteDbProductVariant(
-      existingProductVariant.id,
-    );
+    const [deletedProductVariant, updatedProduct] = await Promise.all([
+      deleteDbProductVariant(existingProductVariant.id),
+      updateProduct(existingProductVariant.product_id, {
+        variants_count: {
+          decrement: 1,
+        },
+      }),
+    ]);
+
     if (!deletedProductVariant)
       return next(
         new ApiError(500, "DB_ERROR", "Couldn't delete product variant!"),
       );
+
+    if (!updatedProduct)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update product!"));
 
     return res
       .status(200)

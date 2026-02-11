@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import SelectInput from "@/src/components/SelectInput";
-import { useBrandsStore } from "@/src/store/brands.store";
+import { useBrandsQueryStore, useBrandsStore } from "@/src/store/brands.store";
 import {
   Select,
   SelectContent,
@@ -9,9 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/src/components/ui/select";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 export default function BrandControls() {
-  const { fetchBrands } = useBrandsStore();
+  const { fetchBrands, initialized } = useBrandsStore();
+  const { query, setQuery } = useBrandsQueryStore();
 
   const [params, setParams] = useState({
     is_active: undefined as "true" | "false" | undefined,
@@ -22,66 +24,24 @@ export default function BrandControls() {
 
   const [searchInput, setSearchInput] = useState("");
 
-  const handleStatusChange = async (value: string) => {
-    setParams((prev) => ({
-      ...prev,
-      search: searchInput === "" ? undefined : searchInput,
-      is_active:
-        value === "active"
-          ? "true"
-          : value === "inactive"
-            ? "false"
-            : undefined,
-    }));
+  const debouncedSearch = useDebounce(searchInput, 400);
+
+  const handleStatusChange = (value: string) => {
+    const is_active =
+      value === "active" ? "1" : value === "inactive" ? "0" : undefined;
+
+    setQuery({ ...query, is_active });
   };
-
-  const handleSortChange = async (value: string) => {
-    let created_at: "asc" | "desc" | undefined = undefined;
-    let name: "asc" | "desc" | undefined = undefined;
-
-    switch (value) {
-      case "newest":
-        created_at = "desc";
-        break;
-      case "oldest":
-        created_at = "asc";
-        break;
-      case "a-z":
-        name = "asc";
-        break;
-      case "z-a":
-        name = "desc";
-        break;
-      default:
-        break;
-    }
-
-    setParams((prev) => ({
-      ...prev,
-      search: searchInput === "" ? undefined : searchInput,
-      created_at,
-      name,
-    }));
-  };
-
-  React.useEffect(() => {
-    fetchBrands(params);
-  }, [params]);
 
   useEffect(() => {
-    const trimmed = searchInput.trim();
+    const trimmed = debouncedSearch.trim();
+    setQuery({ ...query, search: trimmed });
+  }, [debouncedSearch]);
 
-    const timeout = setTimeout(async () => {
-      const data = fetchBrands({
-        ...params,
-        search: trimmed || undefined,
-      });
-    }, 400); // debounce delay
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [searchInput]);
+  useEffect(() => {
+    if (!initialized) return;
+    fetchBrands(query);
+  }, [query]);
 
   return (
     <div className="flex h-[56px] w-full items-center justify-between bg-gray-50 px-4 md:px-6 border-b border-gray-200">
@@ -105,28 +65,13 @@ export default function BrandControls() {
           <span className="hidden sm:inline">Status:</span>
           <FilterButton
             options={[
-              { value: "all", label: "All" },
+              { value: "_all_", label: "All" },
               { value: "active", label: "Active" },
               { value: "inactive", label: "Inactive" },
             ]}
-            value="all"
+            value="_all_"
             label="Status"
             onChange={handleStatusChange}
-          />
-        </div>
-
-        <div className="flex items-center gap-2 text-[14px] text-gray-600">
-          <span className="hidden sm:inline">Sort:</span>
-          <FilterButton
-            options={[
-              { value: "newest", label: "Newest" },
-              { value: "oldest", label: "Oldest" },
-              // { value: "a-z", label: "A-Z" },
-              // { value: "z-a", label: "Z-A" },
-            ]}
-            value="newest"
-            label="Sort"
-            onChange={handleSortChange}
           />
         </div>
       </div>

@@ -1,7 +1,6 @@
-// components/products/FilterButton.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ChevronDown, Check, Search, Loader2 } from "lucide-react";
 import {
   Popover,
@@ -19,6 +18,8 @@ import {
 import { cn } from "@/src/lib/utils";
 import { useCategoryStore } from "@/src/store/category.store";
 import { useBrandsStore } from "@/src/store/brands.store";
+import { Brand, Category } from "@/src/lib/types";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 interface Option {
   value: string;
@@ -26,67 +27,41 @@ interface Option {
 }
 
 interface FilterButtonProps {
-  label: "Category" | "Brand";
-  selectedValue: string;
-  onSelect: (value: string) => void;
+  selectedValue?: Option;
+  onSelect: (value: Option | undefined) => void;
+  options: Option[];
+  loading: boolean;
+  label: string;
+  onSearch: (query: string) => void;
 }
 
 export default function FilterButton({
-  label,
   selectedValue,
   onSelect,
+  loading,
+  options,
+  label,
+  onSearch,
 }: FilterButtonProps) {
-  const {
-    fetchCategories,
-    isLoading: isCategoryLoading,
-    categories,
-  } = useCategoryStore();
-  const { fetchBrands, isLoading: isBrandLoading, brands } = useBrandsStore();
-
   const [open, setOpen] = useState(false);
-
   const [searchInput, setSearchInput] = useState("");
-  const [loading, setLoading] = useState(isCategoryLoading || isBrandLoading);
 
-  const options =
-    label === "Category"
-      ? Array.from(categories.values())
-      : Array.from(brands.values());
+  const debouncedSearch = useDebounce(searchInput, 200);
 
   useEffect(() => {
-    const trimmed = searchInput.trim();
+    if (loading) return;
+    const trimmed = debouncedSearch.trim();
+    if (!trimmed) return;
 
-    if (trimmed === "") return setLoading(false);
-
-    setLoading(true);
-
-    const timeout = setTimeout(async () => {
-      if (label === "Category") {
-        await Promise.resolve(
-          fetchCategories({ search: trimmed || undefined }),
-        );
-        setLoading(false);
-      }
-
-      if (label === "Brand") {
-        await Promise.resolve(fetchBrands({ search: trimmed || undefined }));
-        setLoading(false);
-      }
-    }, 400); // debounce delay
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [searchInput]);
+    onSearch(trimmed);
+  }, [debouncedSearch]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-600 hover:bg-gray-50 transition-colors outline-none focus:ring-2 focus:ring-blue-500/20">
-          <span className="text-gray-400 font-normal">{label}:</span>
           <span className="font-medium text-gray-900">
-            {options.find((opt) => opt.name === selectedValue)?.name ||
-              selectedValue}
+            {selectedValue?.label || "All" + " " + label}
           </span>
           <ChevronDown
             size={14}
@@ -99,14 +74,17 @@ export default function FilterButton({
       </PopoverTrigger>
 
       <PopoverContent className="w-[240px] p-0" align="start">
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput
-            onValueChange={(val) => setSearchInput(val)}
+            value={searchInput}
+            onValueChange={setSearchInput}
             placeholder={`Search ${label}...`}
             className="h-9"
           />
+
           <CommandList>
-            {!loading && options.length === 0 && (
+            {/* empty search result */}
+            {!loading && debouncedSearch && options.length === 0 && (
               <CommandEmpty>No {label.toLowerCase()} found.</CommandEmpty>
             )}
 
@@ -114,21 +92,38 @@ export default function FilterButton({
               <FilterLoadingSkeleton />
             ) : (
               <CommandGroup>
+                <CommandItem
+                  value={undefined}
+                  onSelect={() => {
+                    onSelect(undefined);
+                    setOpen(false);
+                  }}
+                  className="flex items-center justify-between text-[13px]"
+                >
+                  All {label}
+                  <Check
+                    className={cn(
+                      "ml-2 h-4 w-4 text-blue-600",
+                      !selectedValue ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                </CommandItem>
+
                 {options.map((option) => (
                   <CommandItem
-                    key={option.name}
-                    value={option.name}
-                    onSelect={(currentValue) => {
-                      onSelect(currentValue);
+                    key={option.label}
+                    value={option.value}
+                    onSelect={() => {
+                      onSelect(option);
                       setOpen(false);
                     }}
                     className="flex items-center justify-between text-[13px]"
                   >
-                    {option.name}
+                    {option.label}
                     <Check
                       className={cn(
                         "ml-2 h-4 w-4 text-blue-600",
-                        selectedValue === option.name
+                        selectedValue?.value === option.value
                           ? "opacity-100"
                           : "opacity-0",
                       )}

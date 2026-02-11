@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Edit2,
   MoreVertical,
@@ -11,6 +11,8 @@ import {
   Trash2,
   Pencil,
   Loader2,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import {
   Tooltip,
@@ -20,7 +22,10 @@ import {
 } from "@/src/components/ui/tooltip";
 import { Badge } from "@/src/components/ui/badge";
 import { CategoryTableSkeleton } from "./categoryTableSkeleton";
-import { useCategoryStore } from "@/src/store/category.store";
+import {
+  useCategoryQueryStore,
+  useCategoryStore,
+} from "@/src/store/category.store";
 import { Category } from "@/src/lib/types";
 import { Button } from "@/src/components/ui/button";
 import { CategoryServices } from "@/src/services/category.services";
@@ -38,13 +43,49 @@ export default function CategoryTable({
   setBreadcrumbPath,
   onEdit,
 }: CategoryTableProps) {
-  const { categories, isLoading, getCategory, removeCategory } =
-    useCategoryStore();
+  const {
+    categories,
+    isLoading,
+    initialized,
+    loadingFailed,
+    categoryStats,
+    hasMore,
+    cursor,
+    getCategory,
+    removeCategory,
+    fetchCategories,
+  } = useCategoryStore();
+
+  const { query } = useCategoryQueryStore();
+
   const { show: showAlert } = useAlertStore();
+
+  const categoriesList = useMemo(
+    () => Array.from(categories.values()),
+    [categories],
+  );
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+  const paginatedCategories = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return categoriesList.slice(startIndex, startIndex + pageSize);
+  }, [categoriesList, currentPage]);
+
+  const totalPages = Math.ceil(
+    categoryStats ? categoryStats.categories_count / pageSize : 1,
+  );
 
   const [deleting, setDeleting] = useState("");
 
   const onViewProducts = (id: string) => {};
+
+  const fetchPaginatedCategories = async () => {
+    if (currentPage * pageSize <= categories.size) return;
+    if (!hasMore) return;
+    if (!cursor) return;
+    fetchCategories({ ...query, cursor });
+  };
 
   const deleteCategory = async (id: string) => {
     try {
@@ -63,12 +104,20 @@ export default function CategoryTable({
   const onDelete = (id: string) => {
     showAlert({
       title: "Delete Category",
-      message: `Deleting this category will also delete its subcategories and ${getCategory(id)?._count.products} Products. Are you sure you want to delete this category?`,
+      message: `Deleting this category will also delete its subcategories and ${getCategory(id)?.products_count} Products. Are you sure you want to delete this category?`,
       onConfirm: () => {
         deleteCategory(id);
       },
     });
   };
+
+  useEffect(() => {
+    fetchCategories();
+  }, [currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query]);
 
   if (isLoading) return <CategoryTableSkeleton />;
 
@@ -97,7 +146,7 @@ export default function CategoryTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {Array.from(categories.values()).map((cat) => (
+            {paginatedCategories.map((cat) => (
               <tr
                 key={cat.id}
                 className="group h-[56px] transition-colors hover:bg-gray-50 focus-within:bg-gray-50 outline-none"
@@ -149,7 +198,7 @@ export default function CategoryTable({
                     onClick={() => onViewProducts(cat.id)}
                     className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
                   >
-                    {cat._count.products}
+                    {cat.products_count}
                     <ArrowRight
                       size={14}
                       className="opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all"
@@ -200,6 +249,61 @@ export default function CategoryTable({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* COMPONENT 8: Pagination Controls */}
+      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50/50">
+        <div className="text-[13px] text-gray-500 space-x-2"></div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronLeft size={16} />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {[...Array(Math.ceil(categoriesList.length / pageSize))].map(
+              (_, i) => {
+                const pageNum = i + 1;
+                // Simple logic to only show few page numbers if there are many
+                if (totalPages > 5 && Math.abs(pageNum - currentPage) > 2)
+                  return null;
+
+                return (
+                  <Button
+                    type="button"
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "ghost"}
+                    size="sm"
+                    className={`h-8 w-8 p-0 text-[13px] ${currentPage === pageNum ? "bg-primary hover:bg-primary/95" : ""}`}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              },
+            )}
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+            }}
+            disabled={!hasMore}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight size={16} />
+          </Button>
+        </div>
       </div>
     </div>
   );

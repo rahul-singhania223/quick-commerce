@@ -26,7 +26,11 @@ import {
 } from "@/src/components/ui/tooltip";
 import { usePathname, useRouter } from "next/navigation";
 import path from "path";
-import { useCategoryStore } from "@/src/store/category.store";
+import {
+  useCategoryQueryStore,
+  useCategoryStore,
+} from "@/src/store/category.store";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 interface Category {
   id: string;
@@ -52,8 +56,10 @@ export default function CategoryHeader({
   const isAtMaxDepth = selectedCategory?.level === 5;
 
   const { fetchCategories } = useCategoryStore();
+  const { query, setQuery, resetQuery } = useCategoryQueryStore();
 
   const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 400);
 
   const router = useRouter();
 
@@ -65,18 +71,10 @@ export default function CategoryHeader({
   };
 
   useEffect(() => {
-    const trimmed = searchInput.trim();
+    const trimmed = debouncedSearch.trim();
 
-    const timeout = setTimeout(async () => {
-      const data = fetchCategories({
-        search: trimmed || undefined,
-      });
-    }, 400); // debounce delay
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [searchInput]);
+    setQuery({ ...query, search: trimmed });
+  }, [debouncedSearch]);
 
   return (
     <header className="sticky top-[0] z-10 flex h-[72px] w-full items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm">

@@ -17,7 +17,7 @@ export default function BrandsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
 
-  const { brands, brandsCount, isLoading, loadingFailed, fetchBrands } =
+  const { initialized, brandStats, isLoading, loadingFailed, fetchBrands } =
     useBrandsStore();
 
   const [countsPerPage, setCountsPerPage] = useState(10);
@@ -38,7 +38,10 @@ export default function BrandsPage() {
 
   return (
     <div className="min-h-screen bg-white pb-12">
-      <BrandHeader count={brandsCount} onAddBrand={handleOpenCreateModal} />
+      <BrandHeader
+        count={brandStats?.brands_count ?? 0}
+        onAddBrand={handleOpenCreateModal}
+      />
 
       <main className="mx-auto max-w-[1600px]">
         <BrandControls />
@@ -59,16 +62,10 @@ export default function BrandsPage() {
 
           {isLoading ? (
             <BrandsTableSkeleton />
-          ) : brandsCount > 0 ? (
+          ) : brandStats?.brands_count && brandStats.brands_count > 0 ? (
             <>
               {/* 3C. Brands Table */}
               <BrandsTable onEdit={handleOpenEditModal} />
-
-              {/* 8. Pagination */}
-              <BrandsTablePagination
-                current={1}
-                total={Math.ceil(brandsCount / countsPerPage)}
-              />
             </>
           ) : (
             /* 3D. Empty State */

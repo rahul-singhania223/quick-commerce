@@ -2,6 +2,17 @@ export type UUID = string;
 export type ISODateString = string;
 export type DecimalString = string;
 
+export interface ProductStats {
+  products_count: number;
+}
+export interface CategoryStats {
+  categories_count: number;
+}
+
+export interface BrandStats {
+  brands_count: number;
+}
+
 export type ErrorResponse = {
   errorCode: number;
   messageDetails: any;
@@ -22,11 +33,7 @@ export interface Brand {
   logo?: string | null;
   description?: string | null;
   is_active: boolean;
-  created_at: ISODateString;
-  updated_at: ISODateString;
-  _count: {
-    products: number;
-  };
+  products_count: number;
 }
 
 export interface CreateBrandPayload {
@@ -48,19 +55,11 @@ export interface BrandWithProducts extends Brand {
 export interface Category {
   id: UUID;
   name: string;
-  slug: string;
-  parent_id?: UUID | null;
-  level: 0 | 1 | 2;
-  image?: string | null;
-  description?: string | null;
+  level: number;
   is_active: boolean;
-  sort_order: number;
-  created_at: ISODateString;
-  updated_at: ISODateString;
-  _count: {
-    children: number;
-    products: number;
-  };
+  products_count: number;
+  brands_count: number;
+  parent: { id: UUID; name: string };
 }
 
 export interface CategoryTree extends Category {
@@ -68,7 +67,6 @@ export interface CategoryTree extends Category {
 }
 
 export interface CategoryWithRelations extends Category {
-  parent?: Category | null;
   children?: Category[];
   products?: Product[];
 }
@@ -98,14 +96,12 @@ export interface Product {
   is_active: boolean;
   created_at: ISODateString;
   updated_at: ISODateString;
-  _count: {
-    variants?: number;
-    storeProducts?: number;
-  };
+  variants_count: number;
+  store_products_count: number;
 }
 
 export interface ProductWithRelations extends Product {
-  category: Category;
+  category?: Category;
   brand?: Brand | null;
 }
 
@@ -286,9 +282,9 @@ export interface ZoneETA {
   };
 }
 
-export interface Product {
-  id: UUID;
-}
+// export interface Product {
+//   id: UUID;
+// }
 
 export interface Store {
   id: UUID;

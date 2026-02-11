@@ -1,17 +1,6 @@
 import db from "../configs/db.config.js";
 import { Prisma, Product } from "../generated/prisma/client.js";
 
-// Get product count
-export const fetchProductsCount = async () => {
-  try {
-    const count = await db.product.count();
-    return count;
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
-};
-
 // searcch products
 type SearchParams = {
   q?: string; // search text
@@ -91,49 +80,26 @@ interface QueryParams {
   is_active?: boolean;
   created_at?: SortOrder;
   search?: string;
-  category?: string;
-  brand?: string;
+  category_id?: string;
+  brand_id?: string;
+  limit?: number;
+  cursor?: string;
 }
 export const getAllProducts = async ({
   is_active,
   search,
-  created_at,
-  category,
-  brand,
+  created_at = "desc",
+  category_id = undefined,
+  brand_id = undefined,
+  limit = 20,
+  cursor,
 }: QueryParams) => {
   try {
-    // TODO: Add pagination
-
-    const where: Prisma.ProductWhereInput = {};
-
-    // filter: active / inactive
-    if (is_active !== undefined) {
-      where.is_active = is_active;
-    }
-
-    // filter by brand (by name)
-    if (brand && brand.trim() !== "") {
-      where.brand = {
-        is: {
-          name: {
-            equals: brand,
-            mode: "insensitive",
-          },
-        },
-      };
-    }
-
-    // filter by category (by name)
-    if (category && category.trim() !== "") {
-      where.category = {
-        is: {
-          name: {
-            equals: category,
-            mode: "insensitive",
-          },
-        },
-      };
-    }
+    const where: Prisma.ProductWhereInput = {
+      is_active,
+      category_id,
+      brand_id,
+    };
 
     // search: name OR slug
     if (search && search.trim() !== "") {
@@ -154,35 +120,48 @@ export const getAllProducts = async ({
     }
 
     // sorting
-    const orderBy: Prisma.CategoryOrderByWithRelationInput = {
-      created_at: created_at || "desc",
+    const orderBy: Prisma.ProductOrderByWithRelationInput = {
+      created_at: created_at,
     };
 
     const products = await db.product.findMany({
       where,
       orderBy,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+      take: Number(limit) + 1, // Fetch extra to detect next page
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1,
+      }),
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        image: true,
+        is_active: true,
+        variants_count: true,
+        store_products_count: true,
         brand: {
-          select: {
-            id: true,
-            name: true,
-          },
+          select: { name: true, id: true },
         },
-        _count: {
-          select: {
-            variants: true,
-            storeProducts: true,
-          },
+        category: {
+          select: { name: true, id: true },
         },
       },
     });
-    return products;
+
+    // detect next page
+    let nextCursor: string | null = null;
+
+    if (products.length > limit) {
+      const nextItem = products.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    return {
+      data: products,
+      nextCursor,
+      hasMore: !!nextCursor,
+    };
   } catch (error) {
     console.log(error);
     return null;
@@ -198,47 +177,56 @@ export const getProduct = async ({
   slug?: string;
 }) => {
   try {
-    const constraints = [];
+    const where: Prisma.ProductWhereInput = {};
 
-    if (id) constraints.push({ id });
-    if (slug) constraints.push({ slug });
-
-    if (constraints.length === 0) return null;
+    if (slug) {
+      delete where.id;
+      where.slug = slug;
+    }
+    if (id) {
+      delete where.slug;
+      where.id = id;
+    }
 
     return db.product.findFirst({
-      where: {
-        OR: constraints,
+      where,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        image: true,
+        is_active: true,
+        variants_count: true,
+        category_id: true,
+        category: {
+          select: { products_count: true },
+        },
       },
     });
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
 
 // create product
-export const createProduct = async (product: Product) => {
+export const createProduct = async (data: Prisma.ProductCreateInput) => {
   try {
-    // category id+name, brand id+name, slug, variants count, storeproducts count
     const newProduct = await db.product.create({
-      data: product,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+      data,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        image: true,
+        is_active: true,
+        variants_count: true,
+        store_products_count: true,
         brand: {
-          select: {
-            id: true,
-            name: true,
-          },
+          select: { name: true, id: true },
         },
-        _count: {
-          select: {
-            variants: true,
-            storeProducts: true,
-          },
+        category: {
+          select: { name: true, id: true },
         },
       },
     });
@@ -250,34 +238,33 @@ export const createProduct = async (product: Product) => {
 };
 
 // update product
-export const updateProduct = async (id: string, product: Product) => {
+export const updateProduct = async (
+  id: string,
+  data: Prisma.ProductUpdateInput,
+) => {
   try {
     const updatedProduct = await db.product.update({
       where: { id },
-      data: product,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+      data: data,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        image: true,
+        is_active: true,
+        variants_count: true,
+        store_products_count: true,
         brand: {
-          select: {
-            id: true,
-            name: true,
-          },
+          select: { name: true, id: true },
         },
-        _count: {
-          select: {
-            variants: true,
-            storeProducts: true,
-          },
+        category: {
+          select: { name: true, id: true },
         },
       },
     });
     return updatedProduct;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };

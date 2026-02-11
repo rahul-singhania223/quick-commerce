@@ -2,6 +2,7 @@ import asyncHandler from "../utils/async-handler.js";
 import {
   getAllZones as fetchAllZones,
   getZone as fetchZone,
+  getZoneByName,
 } from "../models/zone.model.js";
 import { APIResponse } from "../utils/api-response.util.js";
 import { NextFunction, Request, Response } from "express";
@@ -15,8 +16,49 @@ import {
   getZone as getDbZone,
   updateZone as updateDbZone,
   deleteZone as deleteDbZone,
+  getZonesCount as fetchZonesCount,
 } from "../models/zone.model.js";
 import { isPointInPolygon } from "../utils/location.util.js";
+
+// ===================================================================
+// =================== ZONE COUNTS ===============================
+// ===================================================================
+
+// GET ZONES COUNT
+export const getZonesCount = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const [zonesCount, activeZonesCount, zonesWithoutStoresCount] =
+      await Promise.all([
+        fetchZonesCount({}),
+        fetchZonesCount({ is_active: true }),
+        fetchZonesCount({ without_stores: true }),
+      ]);
+
+    const count = {
+      zones: zonesCount,
+      activeZones: activeZonesCount,
+      zonesWithoutStores: zonesWithoutStoresCount,
+    };
+
+    return res
+      .status(200)
+      .json(
+        new APIResponse("success", "Zones count fetched successfully!", count),
+      );
+  },
+);
+
+// GET ACTIVE ZONES COUNT
+// export const getActiveZonesCount = asyncHandler(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     const count = await fetchZonesCount({ is_active: true });
+//     return res.status(200).json(
+//       new APIResponse("success", "Active zones count fetched successfully!", {
+//         count,
+//       }),
+//     );
+//   },
+// );
 
 // GET ZONE BY POSITION
 export const getZoneByPosition = asyncHandler(
@@ -26,11 +68,11 @@ export const getZoneByPosition = asyncHandler(
 
     if (Number.isNaN(lng) || Number.isNaN(lat)) {
       return next(
-        new ApiError(400, "INVALID_DATA", "Valid lng and lat are required!")
+        new ApiError(400, "INVALID_DATA", "Valid lng and lat are required!"),
       );
     }
 
-    const zones = await fetchAllZones({ isActive: true });
+    const zones = await fetchAllZones({ is_active: true });
     if (!zones || zones.length === 0) {
       return next(new ApiError(404, "DB_ERROR", "No zones found"));
     }
@@ -53,7 +95,7 @@ export const getZoneByPosition = asyncHandler(
         new APIResponse("success", "No zone identified", {
           success: false,
           message: "Currently we do not operate in your area!",
-        })
+        }),
       );
     }
 
@@ -62,22 +104,27 @@ export const getZoneByPosition = asyncHandler(
         success: true,
         zone: { id: matchedZone.id, name: matchedZone.name },
         message: "We are operating in your area!",
-      })
+      }),
     );
-  }
+  },
 );
 
 // GET ALL ZONES
 export const getAllZones = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const zones = await fetchAllZones();
+    const query = req.query;
+    const is_active = query.is_active
+      ? Boolean(Number(query.is_active))
+      : undefined;
+
+    const zones = await fetchAllZones({ ...query, is_active });
     if (!zones)
       return next(new ApiError(404, "DB_ERROR", "Couldn't get zones!"));
 
     return res
       .status(200)
       .json(new APIResponse("success", "Zones fetched successfully!", zones));
-  }
+  },
 );
 
 // GET ZONE
@@ -93,25 +140,33 @@ export const getZone = asyncHandler(
     return res
       .status(200)
       .json(new APIResponse("success", "Zone fetched successfully!", zone));
-  }
+  },
 );
 
-// CREATE ZONE
+// ==================================================
+// ========== CREATE ZONE
+// ==================================================
 export const createZone = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const data = req.body as z.infer<typeof createZoneSchema>;
-
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
-    const { name, boundary } = data;
+    const { name, city, is_active, boundary } = data;
 
+    // check existing zone
+    const exisitingZone = await getZoneByName(name);
+    if (exisitingZone)
+      return next(new ApiError(400, "DB_ERROR", "Zone already exists!"));
+
+    // create new zone
     const newZoneData: Prisma.ZoneCreateInput = {
       name,
       boundary,
-      isActive: true,
+      city,
+      is_active,
     };
 
     const newZone = await createDbZone(newZoneData);
@@ -121,7 +176,7 @@ export const createZone = asyncHandler(
     return res
       .status(200)
       .json(new APIResponse("success", "Created new zone", newZone));
-  }
+  },
 );
 
 // UPDATE ZONE
@@ -134,7 +189,7 @@ export const updateZone = asyncHandler(
     const data = req.body as z.infer<typeof createZoneSchema>;
     if (!data)
       return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!")
+        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
     const existingZone = await getDbZone(zoneId);
@@ -153,9 +208,9 @@ export const updateZone = asyncHandler(
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Zone updated successfully!", updatedZone)
+        new APIResponse("success", "Zone updated successfully!", updatedZone),
       );
-  }
+  },
 );
 
 // DELETE ZONE
@@ -177,5 +232,5 @@ export const deleteZone = asyncHandler(
     return res
       .status(200)
       .json(new APIResponse("success", "Zone deleted successfully!"));
-  }
+  },
 );

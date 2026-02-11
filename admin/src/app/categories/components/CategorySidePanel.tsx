@@ -58,7 +58,7 @@ export default function CategorySidePanel({
     resolver: zodResolver(createCategoryFormSchema),
     defaultValues: {
       name: categoryData?.name ?? "",
-      parent_id: categoryData?.parent_id ?? null,
+      parent_id: categoryData?.parent.id ?? null,
       is_active: categoryData?.is_active ?? true,
     },
   });
@@ -103,12 +103,12 @@ export default function CategorySidePanel({
   const onParentCategorySearch = async (q: string) => {
     try {
       setParentCategoriesLoading(true);
-      const data = await CategoryServices.getAllCategories({ search: q });
+      const res = await CategoryServices.getAllCategories({ search: q });
 
-      if (!data) return toast.error("Something went wrong!");
+      if (!res) return toast.error("Something went wrong!");
 
       setParentCategoriesOptions(
-        data.map((cat) => ({
+        res.data.map((cat) => ({
           label: cat.name,
           value: cat.id,
         })),

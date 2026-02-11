@@ -384,8 +384,10 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
+  Stats: 'Stats',
   User: 'User',
   Zone: 'Zone',
+  ZoneStat: 'ZoneStat',
   Store: 'Store',
   Product: 'Product',
   Category: 'Category',
@@ -409,10 +411,84 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "zone" | "store" | "product" | "category" | "brand" | "productVariant" | "storeProduct" | "inventory" | "address"
+    modelProps: "stats" | "user" | "zone" | "zoneStat" | "store" | "product" | "category" | "brand" | "productVariant" | "storeProduct" | "inventory" | "address"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
+    Stats: {
+      payload: Prisma.$StatsPayload<ExtArgs>
+      fields: Prisma.StatsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StatsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StatsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>
+        }
+        findFirst: {
+          args: Prisma.StatsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StatsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>
+        }
+        findMany: {
+          args: Prisma.StatsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>[]
+        }
+        create: {
+          args: Prisma.StatsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>
+        }
+        createMany: {
+          args: Prisma.StatsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StatsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>[]
+        }
+        delete: {
+          args: Prisma.StatsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>
+        }
+        update: {
+          args: Prisma.StatsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>
+        }
+        deleteMany: {
+          args: Prisma.StatsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StatsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StatsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>[]
+        }
+        upsert: {
+          args: Prisma.StatsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StatsPayload>
+        }
+        aggregate: {
+          args: Prisma.StatsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStats>
+        }
+        groupBy: {
+          args: Prisma.StatsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StatsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StatsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StatsCountAggregateOutputType> | number
+        }
+      }
+    }
     User: {
       payload: Prisma.$UserPayload<ExtArgs>
       fields: Prisma.UserFieldRefs
@@ -558,6 +634,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ZoneCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ZoneCountAggregateOutputType> | number
+        }
+      }
+    }
+    ZoneStat: {
+      payload: Prisma.$ZoneStatPayload<ExtArgs>
+      fields: Prisma.ZoneStatFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ZoneStatFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ZoneStatFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+        }
+        findFirst: {
+          args: Prisma.ZoneStatFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ZoneStatFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+        }
+        findMany: {
+          args: Prisma.ZoneStatFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>[]
+        }
+        create: {
+          args: Prisma.ZoneStatCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+        }
+        createMany: {
+          args: Prisma.ZoneStatCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ZoneStatCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>[]
+        }
+        delete: {
+          args: Prisma.ZoneStatDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+        }
+        update: {
+          args: Prisma.ZoneStatUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+        }
+        deleteMany: {
+          args: Prisma.ZoneStatDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ZoneStatUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ZoneStatUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>[]
+        }
+        upsert: {
+          args: Prisma.ZoneStatUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+        }
+        aggregate: {
+          args: Prisma.ZoneStatAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateZoneStat>
+        }
+        groupBy: {
+          args: Prisma.ZoneStatGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ZoneStatGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ZoneStatCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ZoneStatCountAggregateOutputType> | number
         }
       }
     }
@@ -1192,6 +1342,22 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const StatsScalarFieldEnum = {
+  id: 'id',
+  products_count: 'products_count',
+  brands_count: 'brands_count',
+  categories_count: 'categories_count',
+  users_count: 'users_count',
+  stores_count: 'stores_count',
+  customers_count: 'customers_count',
+  delivery_partners_count: 'delivery_partners_count',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type StatsScalarFieldEnum = (typeof StatsScalarFieldEnum)[keyof typeof StatsScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
   phone: 'phone',
@@ -1208,13 +1374,29 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const ZoneScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  city: 'city',
   boundary: 'boundary',
-  isActive: 'isActive',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ZoneScalarFieldEnum = (typeof ZoneScalarFieldEnum)[keyof typeof ZoneScalarFieldEnum]
+
+
+export const ZoneStatScalarFieldEnum = {
+  id: 'id',
+  zoneId: 'zoneId',
+  bucket: 'bucket',
+  avgTime: 'avgTime',
+  p90Time: 'p90Time',
+  sampleSize: 'sampleSize',
+  lastComputedAt: 'lastComputedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type ZoneScalarFieldEnum = (typeof ZoneScalarFieldEnum)[keyof typeof ZoneScalarFieldEnum]
+export type ZoneStatScalarFieldEnum = (typeof ZoneStatScalarFieldEnum)[keyof typeof ZoneStatScalarFieldEnum]
 
 
 export const StoreScalarFieldEnum = {
@@ -1252,6 +1434,8 @@ export const ProductScalarFieldEnum = {
   category_id: 'category_id',
   brand_id: 'brand_id',
   is_active: 'is_active',
+  variants_count: 'variants_count',
+  store_products_count: 'store_products_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1267,6 +1451,8 @@ export const CategoryScalarFieldEnum = {
   level: 'level',
   is_active: 'is_active',
   sort_order: 'sort_order',
+  products_count: 'products_count',
+  brands_count: 'brands_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1280,6 +1466,7 @@ export const BrandScalarFieldEnum = {
   slug: 'slug',
   logo: 'logo',
   is_active: 'is_active',
+  products_count: 'products_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1290,8 +1477,8 @@ export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof Br
 export const ProductVariantScalarFieldEnum = {
   id: 'id',
   product_id: 'product_id',
-  sku: 'sku',
   name: 'name',
+  slug: 'slug',
   weight: 'weight',
   unit: 'unit',
   mrp: 'mrp',
@@ -1417,6 +1604,34 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime'
+ */
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime[]'
+ */
+export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
  * Reference to a field of type 'Role'
  */
 export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
@@ -1445,20 +1660,6 @@ export type ListEnumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
 
 
 /**
- * Reference to a field of type 'DateTime'
- */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime[]'
- */
-export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -1476,6 +1677,34 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'ZoneTimeBucket'
+ */
+export type EnumZoneTimeBucketFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ZoneTimeBucket'>
+    
+
+
+/**
+ * Reference to a field of type 'ZoneTimeBucket[]'
+ */
+export type ListEnumZoneTimeBucketFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ZoneTimeBucket[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 
@@ -1508,20 +1737,6 @@ export type ListEnumStore_StatusFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-/**
  * Reference to a field of type 'AddressLabel'
  */
 export type EnumAddressLabelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AddressLabel'>
@@ -1532,20 +1747,6 @@ export type EnumAddressLabelFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'AddressLabel[]'
  */
 export type ListEnumAddressLabelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AddressLabel[]'>
-    
-
-
-/**
- * Reference to a field of type 'Float'
- */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-/**
- * Reference to a field of type 'Float[]'
- */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1643,8 +1844,10 @@ export type PrismaClientOptions = ({
   comments?: runtime.SqlCommenterPlugin[]
 }
 export type GlobalOmitConfig = {
+  stats?: Prisma.StatsOmit
   user?: Prisma.UserOmit
   zone?: Prisma.ZoneOmit
+  zoneStat?: Prisma.ZoneStatOmit
   store?: Prisma.StoreOmit
   product?: Prisma.ProductOmit
   category?: Prisma.CategoryOmit

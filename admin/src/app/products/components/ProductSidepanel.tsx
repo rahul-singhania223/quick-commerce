@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   X,
   Loader2,
@@ -34,6 +34,7 @@ import ImageUploader from "./ImageUploader";
 import { ProductServices } from "@/src/services/products.services";
 import { toast } from "sonner";
 import { useProductsStore } from "@/src/store/products.store";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 interface ProductSidePanelProps {
   id?: string | null;
@@ -62,7 +63,7 @@ export default function ProductSidePanel({
     categories,
     fetchCategories,
     isLoading: isLoadingCategories,
-    clearCategory,
+    clearCategories,
   } = useCategoryStore();
   const {
     brands,
@@ -70,6 +71,13 @@ export default function ProductSidePanel({
     isLoading: isLoadingBrands,
     clearBrands,
   } = useBrandsStore();
+
+  const categoriesOptions = useMemo(
+    () => Array.from(categories.values()),
+    [categories],
+  );
+
+  const brandsOptions = useMemo(() => Array.from(brands.values()), [brands]);
 
   const { addProduct, getProduct } = useProductsStore();
 
@@ -80,36 +88,25 @@ export default function ProductSidePanel({
     defaultValues: {
       name: product?.name ?? "",
       image: product?.image ?? "",
-      category_id: product?.category_id ?? "",
-      brand_id: product?.brand_id ?? null,
+      category_id: product?.category?.id ?? "",
+      brand_id: product?.brand?.id ?? null,
       is_active: product?.is_active ?? true,
     },
   });
 
   const [isSaving, setIsSaving] = useState(false);
   const [categoryInput, setCategoryInput] = useState(
-    product?.category.name ?? "",
+    product?.category?.name ?? "",
   );
   const [brandInput, setBrandInput] = useState(product?.brand?.name ?? "");
+
+  const debounceCategoryInput = useDebounce(categoryInput, 400);
+  const debounceBrandInput = useDebounce(brandInput, 400);
 
   const [openCategorySelector, setOpenCategorySelector] = useState(false);
   const [openBrandSelector, setOpenBrandSelector] = useState(false);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleCategoryInputChange = (value: string) => {
-    setCategoryInput(value);
-    setOpenCategorySelector(true);
-    setOpenBrandSelector(false);
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      fetchCategories({ search: value });
-    }, 400); // delay in ms
-  };
 
   const handleBrandInputChange = (value: string) => {
     setBrandInput(value);
@@ -155,6 +152,20 @@ export default function ProductSidePanel({
     }
   };
 
+  useEffect(() => {
+    if (!debounceCategoryInput.trim()) return;
+    if (product && product.category?.name === debounceCategoryInput) return;
+
+    fetchCategories({ search: debounceCategoryInput });
+  }, [debounceCategoryInput]);
+
+  useEffect(() => {
+    if (!debounceBrandInput.trim()) return;
+    if (product && product.brand?.name === debounceBrandInput) return;
+
+    fetchBrands({ search: debounceBrandInput });
+  }, [debounceBrandInput]);
+
   return (
     <div className="fixed inset-y-0 right-0 z-50 w-[420px] border-l border-gray-200 bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
       {/* Header */}
@@ -175,7 +186,6 @@ export default function ProductSidePanel({
       <Form {...form}>
         <form
           onClick={(e) => {
-            // e.preventDefault();
             e.bubbles.valueOf();
             e.stopPropagation();
             setOpenBrandSelector(false);
@@ -216,17 +226,19 @@ export default function ProductSidePanel({
                       value={categoryInput}
                       onChange={(e) => {
                         field.onChange("");
-                        handleCategoryInputChange(e.target.value);
+                        setOpenBrandSelector(false);
+                        setOpenCategorySelector(true);
+                        setCategoryInput(e.target.value);
                       }}
                       className="h-10 focus:ring-primary! focus:ring-1!"
                       placeholder="Type to search..."
                     />
                     <Selector
-                      options={Array.from(categories.values())}
+                      options={categoriesOptions}
                       onSelect={(category) => {
                         setCategoryInput(category.name);
                         field.onChange(category.id);
-                        clearCategory();
+                        clearCategories();
                       }}
                       type="category"
                       isLoading={
@@ -254,13 +266,15 @@ export default function ProductSidePanel({
                       value={brandInput}
                       onChange={(e) => {
                         field.onChange(null);
-                        handleBrandInputChange(e.target.value);
+                        setOpenBrandSelector(true);
+                        setOpenCategorySelector(false);
+                        setBrandInput(e.target.value);
                       }}
                       className="h-10 focus:ring-primary! focus:ring-1!"
                       placeholder="Type to search..."
                     />
                     <Selector
-                      options={Array.from(brands.values())}
+                      options={brandsOptions}
                       onSelect={(brand) => {
                         setBrandInput(brand.name);
                         field.onChange(brand.id);
@@ -409,7 +423,7 @@ function Selector({
 
               <div className="flex items-center gap-2">
                 <span className="text-[12px] text-gray-400 group-hover:text-primary font-medium">
-                  {category._count.products} products
+                  {category.products_count} products
                 </span>
               </div>
             </button>
@@ -452,7 +466,7 @@ function Selector({
 
               <div className="flex items-center gap-2">
                 <span className="text-[12px] text-gray-400 group-hover:text-primary font-medium">
-                  {brand._count.products} products
+                  {brand.products_count} products
                 </span>
               </div>
             </button>

@@ -1,43 +1,50 @@
-import { BottomNav } from "@/src/components/bottom-nav";
 import BannerCarousel from "@/src/components/carousel";
-import { CartBar } from "@/src/components/cart-bar";
 import { categories, products } from "@/src/constants/dummy";
 import { Colors } from "@/src/constants/theme";
+import { useAuthStore } from "@/src/store/auth.store";
 import { Search } from "lucide-react-native";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Category from "./category";
 import DealProduct from "./deal-product";
 import Navbar from "./navbar";
-import ProductCard from "./product-card";
 import NavbarWithoutAuth from "./navbarWithoutAuth";
-import { useAuthStore } from "@/src/store/auth.store";
+import ProductCard from "./product-card";
 
 export default function HomeScreen() {
   const { status } = useAuthStore();
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* <Navbar /> */}
       {status === "authenticated" ? <Navbar /> : <NavbarWithoutAuth />}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
         style={{
           flex: 1,
-          paddingTop: 40,
+          backgroundColor: Colors.background,
+          // paddingTop: 40,
           paddingBottom: 40,
           paddingHorizontal: 16,
           marginBottom: status === "authenticated" ? 120 : 0,
         }}
       >
-        <Pressable style={styles.searchButton}>
+        <TouchableOpacity style={styles.searchButton}>
           <Search size={20} color={Colors.mutedForeground} />
           <Text style={styles.searchButtonText}>
             Search for "Milk, Bread, Vegetables"
           </Text>
-        </Pressable>
+        </TouchableOpacity>
 
         <ScrollView
+        overScrollMode="auto"
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoryContainer}
@@ -127,7 +134,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: "#fff",
   },
 
   searchButton: {
@@ -172,12 +179,13 @@ const styles = StyleSheet.create({
   },
 
   secondCategory: {
-    width: "31%",
-    marginBottom: 16,
+    width: "31.5%",
+    marginBottom: 8,
     backgroundColor: "#fff",
     marginRight: 0,
     padding: 8,
     borderRadius: 12,
+   
     boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.02)",
   },
 
@@ -194,7 +202,7 @@ const styles = StyleSheet.create({
   },
   sectionHeaderText: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "600",
     marginBottom: 24,
     color: Colors.foreground,
   },
@@ -204,7 +212,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    rowGap: 16,
+    rowGap: 2,
     marginBottom: 40,
   },
 });

@@ -9,14 +9,12 @@ interface QueryParams {
 
 export const getAllProductVariants = async ({ product_id }: QueryParams) => {
   try {
-    // TODO: Add pagination
-
-    const where: Prisma.ProductVariantWhereInput = {};
+    const where: Prisma.ProductVariantWhereInput = {
+      product_id,
+    };
     const orderBy: Prisma.ProductVariantOrderByWithRelationInput = {
       created_at: "desc",
     };
-
-    if (product_id) where.product_id = product_id;
 
     const productVariants = await db.productVariant.findMany({
       where,
@@ -24,6 +22,7 @@ export const getAllProductVariants = async ({ product_id }: QueryParams) => {
     });
     return productVariants;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
@@ -31,25 +30,17 @@ export const getAllProductVariants = async ({ product_id }: QueryParams) => {
 // GET PRODUCT VARIANT
 export const getProductVariant = async ({
   id,
-  sku,
+  slug,
 }: {
   id?: string;
-  sku?: string;
+  slug?: string;
 }) => {
   try {
-    const constraints = [];
-
-    if (id) constraints.push({ id });
-    if (sku) constraints.push({ sku });
-
-    if (constraints.length === 0) return null;
-
-    return db.productVariant.findFirst({
-      where: {
-        OR: constraints,
-      },
+    return db.productVariant.findUnique({
+      where: { id, slug },
     });
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
@@ -62,15 +53,18 @@ export const deleteProductVariant = async (id: string) => {
     });
     return deletedProductVariant;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
 
 // CREATE PRODUCT VARIANT
-export const createProductVariant = async (productVariant: ProductVariant) => {
+export const createProductVariant = async (
+  data: Prisma.ProductVariantCreateInput,
+) => {
   try {
     const newProductVariant = await db.productVariant.create({
-      data: productVariant,
+      data,
     });
     return newProductVariant;
   } catch (error) {
@@ -82,15 +76,16 @@ export const createProductVariant = async (productVariant: ProductVariant) => {
 // UPDATE PRODUCT VARIANT
 export const updateProductVariant = async (
   id: string,
-  productVariant: ProductVariant,
+  data: Prisma.ProductVariantUpdateInput,
 ) => {
   try {
     const updatedProductVariant = await db.productVariant.update({
       where: { id },
-      data: productVariant,
+      data,
     });
     return updatedProductVariant;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };

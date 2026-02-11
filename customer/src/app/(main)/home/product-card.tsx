@@ -69,12 +69,11 @@ export default function ProductCard({
 
 const styles = StyleSheet.create({
   card: {
-    maxWidth: 170,
-    width: "48%", // Standard width for recommendation cards
-    borderRadius: 12,
+    // maxWidth: 170,
+    width: "49.7%", // Standard width for recommendation cards
+    // borderRadius: 12,
     padding: 12,
     backgroundColor: "#fff",
-    boxShadow: "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
   },
   imageContainer: {
     width: "100%",

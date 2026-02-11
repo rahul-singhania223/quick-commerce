@@ -183,39 +183,39 @@ export default function VerificationScreen() {
 
   if (loading) return <ScreenLoader />;
 
-  if (globalError) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          padding: 20,
-        }}
-      >
-        <View>
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "700",
-              marginBottom: 40,
-              textAlign: "center",
-              color: Colors.red,
-            }}
-          >
-            {globalError}
-          </Text>
+  // if (globalError) {
+  //   return (
+  //     <View
+  //       style={{
+  //         flex: 1,
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         padding: 20,
+  //       }}
+  //     >
+  //       <View>
+  //         <Text
+  //           style={{
+  //             fontSize: 20,
+  //             fontWeight: "700",
+  //             marginBottom: 40,
+  //             textAlign: "center",
+  //             color: Colors.red,
+  //           }}
+  //         >
+  //           {globalError}
+  //         </Text>
 
-          <Button
-            onPress={() => router.push("/auth")}
-            style={{ height: 60, borderRadius: 12 }}
-          >
-            <Text>Get New OTP</Text>
-          </Button>
-        </View>
-      </View>
-    );
-  }
+  //         <Button
+  //           onPress={() => router.push("/auth")}
+  //           style={{ height: 60, borderRadius: 12 }}
+  //         >
+  //           <Text>Get New OTP</Text>
+  //         </Button>
+  //       </View>
+  //     </View>
+  //   );
+  // }
   return (
     <Pressable
       onPress={Keyboard.dismiss}

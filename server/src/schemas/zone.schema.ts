@@ -24,7 +24,7 @@ const LinearRingSchema = z
     },
     {
       message: "Polygon must be closed (first and last coordinates must match)",
-    }
+    },
   );
 
 /**
@@ -45,6 +45,11 @@ export const createZoneSchema = z.object({
     .string()
     .min(3, "Zone name is too short")
     .max(100, "Zone name is too long"),
+  city: z
+    .string()
+    .min(3, "City name is too short")
+    .max(100, "City name is too long"),
 
+  is_active: z.boolean().optional().default(true),
   boundary: GeoJSONPolygonSchema,
 });

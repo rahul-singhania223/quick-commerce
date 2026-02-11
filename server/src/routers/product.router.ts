@@ -10,21 +10,21 @@ import {
   deleteProduct,
   getAllProducts,
   getProduct,
-  getProductsCount,
+  getProductStats,
   searchProducts,
   updateProduct,
 } from "../controllers/product.controller.js";
 
 const router = Router();
 
+// GET PRODUCT STATS
+router.get("/stats", getProductStats);
+
 // SEARCH PRODUCTS
 router.get("/search", searchProducts);
 
 // GET ALL PRODUCTS
 router.get("/", getAllProducts);
-
-// GET PRODUCT COUNT
-router.get("/count", getProductsCount);
 
 // GET PRODUCT
 router.get("/:id", getProduct);

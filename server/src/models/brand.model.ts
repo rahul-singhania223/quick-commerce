@@ -1,25 +1,35 @@
+import { name } from "ejs";
 import db from "../configs/db.config.js";
 import { Brand, Prisma } from "../generated/prisma/client.js";
 
 // create brand
-export const createBrand = async (data: Brand) => {
+export const createBrand = async (data: Prisma.BrandCreateInput) => {
   try {
     const brand = await db.brand.create({
       data,
-      include: { _count: { select: { products: true } } },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logo: true,
+        is_active: true,
+        products_count: true,
+      },
     });
     return brand;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
 
 // GET BRANDS COUNT
-export const getBrandsCount = async () => {
+export const getBrandStats = async () => {
   try {
-    const count = await db.brand.count();
+    const count = await db.stats.findFirst({ select: { brands_count: true } });
     return count;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
@@ -32,6 +42,8 @@ interface QueryParams {
   sort_name?: SortOrder; // A–Z / Z–A
   created_at?: SortOrder;
   search?: string;
+  limit?: number;
+  cursor?: string;
 }
 
 export const getAllBrands = async ({
@@ -39,16 +51,13 @@ export const getAllBrands = async ({
   sort_name,
   created_at,
   search,
+  limit = 20,
+  cursor,
 }: QueryParams = {}) => {
   try {
-    // TODO: Add pagination
-
-    const where: Prisma.BrandWhereInput = {};
-
-    // filter: active / inactive
-    if (is_active !== undefined) {
-      where.is_active = is_active;
-    }
+    const where: Prisma.BrandWhereInput = {
+      is_active,
+    };
 
     // search: name OR slug
     if (search && search.trim() !== "") {
@@ -80,18 +89,39 @@ export const getAllBrands = async ({
     const brands = await db.brand.findMany({
       where,
       orderBy,
-      include: {
-        _count: { select: { products: true } },
+      take: Number(limit) + 1, // Fetch extra to detect next page
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1,
+      }),
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logo: true,
+        is_active: true,
+        products_count: true,
       },
     });
 
-    return brands;
+    // detect next page
+    let nextCursor: string | null = null;
+
+    if (brands.length > limit) {
+      const nextItem = brands.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    return {
+      data: brands,
+      nextCursor,
+      hasMore: !!nextCursor,
+    };
   } catch (error) {
     console.error(error);
     return null;
   }
 };
-
 
 // get brand
 export const getBrand = async ({
@@ -103,31 +133,46 @@ export const getBrand = async ({
   slug?: string;
   name?: string;
 }) => {
-  const constraints = [];
-
-  if (id) constraints.push({ id });
-  if (slug) constraints.push({ slug });
-  if (name) constraints.push({ name });
-
-  if (constraints.length === 0) return null;
+  const where: Prisma.BrandWhereInput = {
+    id,
+    slug,
+    name,
+  };
 
   return db.brand.findFirst({
-    where: {
-      OR: constraints,
+    where,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+      is_active: true,
+      products_count: true,
     },
   });
 };
 
 // update brand
-export const updateBrand = async (id: string, data: Brand) => {
+export const updateBrand = async (
+  id: string,
+  data: Prisma.BrandUpdateInput,
+) => {
   try {
     const brand = await db.brand.update({
       where: { id },
       data,
-      include: { _count: { select: { products: true } } },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logo: true,
+        is_active: true,
+        products_count: true,
+      },
     });
     return brand;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
@@ -138,6 +183,46 @@ export const deleteBrand = async (id: string) => {
     const brand = await db.brand.delete({ where: { id } });
     return brand;
   } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const increaseBrandCount = async () => {
+  try {
+    const stats = await db.stats.findFirst();
+
+    const updatedStats = await db.stats.update({
+      where: { id: stats?.id },
+      data: stats
+        ? { brands_count: stats.brands_count + 1 }
+        : { brands_count: 1 },
+      select: { brands_count: true },
+    });
+
+    return updatedStats;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+// decrease product count
+export const decreaseBrandCount = async () => {
+  try {
+    const stats = await db.stats.findFirst();
+
+    const updatedStats = await db.stats.update({
+      where: { id: stats?.id },
+      data: stats
+        ? { brands_count: stats.brands_count - 1 }
+        : { brands_count: 0 },
+      select: { brands_count: true },
+    });
+
+    return updatedStats;
+  } catch (error) {
+    console.log(error);
     return null;
   }
 };

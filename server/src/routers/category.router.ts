@@ -3,7 +3,7 @@ import {
   createCategory,
   deleteCategory,
   getAllCategories,
-  getCategoriesCount,
+  getCategoryStats,
   getCategory,
   updateCategory,
 } from "../controllers/category.controller.js";
@@ -15,6 +15,14 @@ import { categoryFormSchema } from "../schemas/category.schema.js";
 import { validateForm } from "../middleware/validate.middleware.js";
 
 const router = Router();
+
+// GET CATEGORY STATS
+router.get(
+  "/stats",
+  //  authorizeUser,
+  // authorizeAdmin
+  getCategoryStats,
+);
 
 // GET ALL CATEGORIES
 router.get("/", getAllCategories);
@@ -45,14 +53,6 @@ router.delete(
   //  authorizeUser,
   // authorizeAdmin,
   deleteCategory,
-);
-
-// GET CATEGORY COUNT
-router.get(
-  "/count",
-  //  authorizeUser,
-  // authorizeAdmin
-  getCategoriesCount,
 );
 
 export default router;

@@ -6,44 +6,46 @@ import { categoryFormSchema } from "../schemas/category.schema.js";
 import z from "zod";
 import slugify from "slugify";
 import { v4, validate as isValidUUID } from "uuid";
-import { Category } from "../generated/prisma/client.js";
+import { Category, Prisma } from "../generated/prisma/client.js";
 import {
   getAllCategories as fetchAllCategories,
   getCategory as fetchCategory,
   createCategory as createDbCategory,
   updateCategory as updateDbCategory,
   deleteCategory as deleteDbCategory,
-  getCategoriesCount as fetchCategoriesCount,
+  getCategoryStats as fetchCategoryStats,
+  increaseCategoryCount,
+  decreaseCategoryCount,
 } from "../models/category.model.js";
 
 // GET CATEGORIES COUNT
-export const getCategoriesCount = asyncHandler(
+export const getCategoryStats = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const count = await fetchCategoriesCount();
+    const stats = await fetchCategoryStats();
 
-    return res.status(200).json(
-      new APIResponse("success", "Categories count fetched successfully!", {
-        count,
-      }),
-    );
+    return res
+      .status(200)
+      .json(
+        new APIResponse(
+          "success",
+          "Categories stats fetched successfully!",
+          stats,
+        ),
+      );
   },
 );
 
 // GET ALL CATEGORIES
 export const getAllCategories = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    // TODO: Add pagination
-
     const queries = req.query;
+    const is_active = queries.is_active
+      ? Boolean(Number(queries.is_active))
+      : undefined;
 
     const categories = await fetchAllCategories({
       ...queries,
-      is_active:
-        queries.is_active === "true"
-          ? true
-          : queries.is_active === "false"
-            ? false
-            : undefined,
+      is_active,
     });
     if (!categories)
       return next(new ApiError(404, "DB_ERROR", "Couldn't get categories!"));
@@ -79,7 +81,9 @@ export const getCategory = asyncHandler(
   },
 );
 
-// CREATE CATEGORY
+/* ========================================================
+   ================ CREATE CATEGORY
+   ======================================================== */
 export const createCategory = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const data = req.body as z.infer<typeof categoryFormSchema>;
@@ -90,14 +94,22 @@ export const createCategory = asyncHandler(
 
     const { name, parent_id, is_active } = data;
 
-    console.log(parent_id);
+    if (parent_id && !isValidUUID(parent_id))
+      return next(
+        new ApiError(400, "INVALID_DATA", "Invalid parent category ID!"),
+      );
 
-    // check if category name already exists
-    const existingCategory: Category | null = await fetchCategory({ name });
+    const [existingCategory, parentCategory] = await Promise.all([
+      fetchCategory({ name }),
+      parent_id ? fetchCategory({ id: parent_id || undefined }) : null,
+    ]);
+
     if (existingCategory)
       return next(new ApiError(400, "DB_ERROR", "Category already exists!"));
 
-    // create slug
+    if (parent_id && !parentCategory)
+      return next(new ApiError(404, "DB_ERROR", "Parent category not found!"));
+
     // @ts-ignore
     const slug = slugify.default(name, {
       replacement: "-",
@@ -107,39 +119,37 @@ export const createCategory = asyncHandler(
     });
 
     // create new category
-    const newCategoryData: Category = {
+    const newCategoryData: Prisma.CategoryCreateInput = {
       id: v4(),
       name,
       slug,
-      parent_id,
+      parent: { connect: { id: parent_id || undefined } },
       level: 1,
       sort_order: 1,
       is_active,
-      created_at: new Date(),
-      updated_at: new Date(),
     };
 
-    // check if parent category exists
-    if (parent_id) {
-      const parent = await fetchCategory({ id: parent_id });
-      if (!parent)
-        return next(
-          new ApiError(404, "DB_ERROR", "Parent category doesn't exist!"),
-        );
-
-      const level = parent.level + 1;
+    if (parent_id && parentCategory) {
+      const level = parentCategory.level + 1;
       if (level > 5)
         return next(
           new ApiError(400, "DB_ERROR", "This category can't have childrens!"),
         );
 
       newCategoryData.level = level;
-      newCategoryData.sort_order = parent.sort_order + 1;
+      newCategoryData.sort_order = parentCategory.sort_order + 1;
     }
 
-    const newCategory = await createDbCategory(newCategoryData);
+    const [newCategory, updatedStats] = await Promise.all([
+      createDbCategory(newCategoryData),
+      increaseCategoryCount(),
+    ]);
+
     if (!newCategory)
       return next(new ApiError(500, "DB_ERROR", "Couldn't create category!"));
+
+    if (!updatedStats)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
 
     // return response
     return res
@@ -157,7 +167,6 @@ export const createCategory = asyncHandler(
 // UPDATE CATEGORY
 export const updateCategory = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.body);
     const id = req.params.id;
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid category ID!"));
@@ -168,16 +177,24 @@ export const updateCategory = asyncHandler(
         new ApiError(400, "INVALID_DATA", "All input fields are required!"),
       );
 
-    const existingCategory: Category | null = await fetchCategory({ id });
+    const { name, parent_id } = data;
+
+    if (parent_id && !isValidUUID(parent_id))
+      return next(
+        new ApiError(400, "INVALID_DATA", "Invalid parent category ID!"),
+      );
+
+    const existingCategory = await fetchCategory({ id });
     if (!existingCategory)
       return next(new ApiError(404, "DB_ERROR", "Category not found!"));
 
-    const { name } = data;
+    const newName = name && name !== existingCategory.name;
 
-    if (name && name !== existingCategory.name) {
-      const existingCategoryWithNewName: Category | null = await fetchCategory({
-        name,
-      });
+    const [existingCategoryWithNewName] = await Promise.all([
+      newName ? fetchCategory({ name }) : null,
+    ]);
+
+    if (newName) {
       if (existingCategoryWithNewName)
         return next(new ApiError(400, "DB_ERROR", "Category already exists!"));
 
@@ -235,10 +252,8 @@ export const updateCategory = asyncHandler(
         return next(new ApiError(404, "DB_ERROR", "Parent not found!"));
     }
 
-    const updatedCategoryData: Category = {
-      ...existingCategory,
+    const updatedCategoryData: Prisma.CategoryUpdateInput = {
       ...data,
-      updated_at: new Date(),
     };
 
     const updatedCategory = await updateDbCategory(
@@ -267,13 +282,21 @@ export const deleteCategory = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid category ID!"));
 
-    const existingCategory: Category | null = await fetchCategory({ id });
+    const existingCategory = await fetchCategory({ id });
+
     if (!existingCategory)
       return next(new ApiError(404, "DB_ERROR", "Category not found!"));
+    
+    const [deletedCategory, updatedStats] = await Promise.all([
+      deleteDbCategory(id),
+      decreaseCategoryCount(),
+    ]);
 
-    const deletedCategory = await deleteDbCategory(existingCategory.id);
     if (!deletedCategory)
       return next(new ApiError(500, "DB_ERROR", "Couldn't delete category!"));
+
+    if (!updatedStats)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
 
     return res
       .status(200)

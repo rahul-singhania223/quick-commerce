@@ -20,9 +20,9 @@ export default function DashboardPage() {
             Products
           </div>{" "}
         </Link>
-        <Link href={"/zones"}>
+        <Link href={"/#"}>
           <div className="h-20 rounded-lg flex items-center justify-center bg-white border shadow font-semibold text-xl">
-            Zones
+            Zones (WIP)
           </div>{" "}
         </Link>
       </div>

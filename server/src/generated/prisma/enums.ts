@@ -43,3 +43,12 @@ export const Status = {
 } as const
 
 export type Status = (typeof Status)[keyof typeof Status]
+
+
+export const ZoneTimeBucket = {
+  ALL_DAY: 'ALL_DAY',
+  PEAK: 'PEAK',
+  OFF_PEAK: 'OFF_PEAK'
+} as const
+
+export type ZoneTimeBucket = (typeof ZoneTimeBucket)[keyof typeof ZoneTimeBucket]

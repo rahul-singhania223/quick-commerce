@@ -51,8 +51,10 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  Stats: 'Stats',
   User: 'User',
   Zone: 'Zone',
+  ZoneStat: 'ZoneStat',
   Store: 'Store',
   Product: 'Product',
   Category: 'Category',
@@ -79,6 +81,22 @@ export const TransactionIsolationLevel = {
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const StatsScalarFieldEnum = {
+  id: 'id',
+  products_count: 'products_count',
+  brands_count: 'brands_count',
+  categories_count: 'categories_count',
+  users_count: 'users_count',
+  stores_count: 'stores_count',
+  customers_count: 'customers_count',
+  delivery_partners_count: 'delivery_partners_count',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type StatsScalarFieldEnum = (typeof StatsScalarFieldEnum)[keyof typeof StatsScalarFieldEnum]
+
+
 export const UserScalarFieldEnum = {
   id: 'id',
   phone: 'phone',
@@ -95,13 +113,29 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const ZoneScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  city: 'city',
   boundary: 'boundary',
-  isActive: 'isActive',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ZoneScalarFieldEnum = (typeof ZoneScalarFieldEnum)[keyof typeof ZoneScalarFieldEnum]
+
+
+export const ZoneStatScalarFieldEnum = {
+  id: 'id',
+  zoneId: 'zoneId',
+  bucket: 'bucket',
+  avgTime: 'avgTime',
+  p90Time: 'p90Time',
+  sampleSize: 'sampleSize',
+  lastComputedAt: 'lastComputedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type ZoneScalarFieldEnum = (typeof ZoneScalarFieldEnum)[keyof typeof ZoneScalarFieldEnum]
+export type ZoneStatScalarFieldEnum = (typeof ZoneStatScalarFieldEnum)[keyof typeof ZoneStatScalarFieldEnum]
 
 
 export const StoreScalarFieldEnum = {
@@ -139,6 +173,8 @@ export const ProductScalarFieldEnum = {
   category_id: 'category_id',
   brand_id: 'brand_id',
   is_active: 'is_active',
+  variants_count: 'variants_count',
+  store_products_count: 'store_products_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -154,6 +190,8 @@ export const CategoryScalarFieldEnum = {
   level: 'level',
   is_active: 'is_active',
   sort_order: 'sort_order',
+  products_count: 'products_count',
+  brands_count: 'brands_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -167,6 +205,7 @@ export const BrandScalarFieldEnum = {
   slug: 'slug',
   logo: 'logo',
   is_active: 'is_active',
+  products_count: 'products_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -177,8 +216,8 @@ export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof Br
 export const ProductVariantScalarFieldEnum = {
   id: 'id',
   product_id: 'product_id',
-  sku: 'sku',
   name: 'name',
+  slug: 'slug',
   weight: 'weight',
   unit: 'unit',
   mrp: 'mrp',

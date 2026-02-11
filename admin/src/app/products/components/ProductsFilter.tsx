@@ -2,32 +2,76 @@
 
 import { Search, ChevronDown, Filter } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
-import { useEffect, useState } from "react";
-import { useProductsStore } from "@/src/store/products.store";
+import { useEffect, useMemo, useState } from "react";
+import {
+  useProductQueryStore,
+  useProductsStore,
+} from "@/src/store/products.store";
 import FilterButton from "./FilterButton";
 import { useSearchParams } from "next/navigation";
+import { useCategoryStore } from "@/src/store/category.store";
+import { useDebounce } from "@/src/hooks/useDebounce";
+import { useBrandsStore } from "@/src/store/brands.store";
 
 export default function ProductFilters() {
-  const { fetchProducts } = useProductsStore();
+  const { fetchProducts, initialized } = useProductsStore();
+  const { query, setQuery, resetQuery } = useProductQueryStore();
+  const {
+    categories,
+    isLoading: isCategoryLoading,
+    fetchCategories,
+  } = useCategoryStore();
 
+  const { brands, isLoading: isBrandLoading, fetchBrands } = useBrandsStore();
+
+  const categoriesOptions = useMemo(
+    () =>
+      Array.from(categories.values()).map((cat) => ({
+        label: cat.name,
+        value: cat.id,
+      })),
+    [categories],
+  );
+
+  const brandsOptions = useMemo(
+    () =>
+      Array.from(brands.values()).map((cat) => ({
+        label: cat.name,
+        value: cat.id,
+      })),
+    [brands],
+  );
+
+  const [searchInput, setSearchInput] = useState("");
   const [filterOptions, setFilterOptions] = useState({
-    category: undefined as string | undefined,
-    brand: undefined as string | undefined,
-    search: "",
+    category: undefined as { label: string; value: string } | undefined,
+    brand: undefined as { label: string; value: string } | undefined,
   });
 
-  useEffect(() => {
-    const timeout = setTimeout(async () => {
-      fetchProducts({
-        ...filterOptions,
-        search: filterOptions.search.trim() || undefined,
-      });
-    }, 400); // debounce delay
+  const debouncedSearch = useDebounce(searchInput, 200);
 
-    return () => {
-      clearTimeout(timeout);
-    };
+  useEffect(() => {
+    const search = searchInput.trim();
+
+    setQuery({
+      category_id: filterOptions.category?.value,
+      brand_id: filterOptions.brand?.value,
+      search: search ? search : undefined,
+      cursor: undefined,
+    });
   }, [filterOptions]);
+
+  useEffect(() => {
+    if (!initialized) return;
+    const trimmed = debouncedSearch.trim();
+
+    setQuery({
+      search: trimmed,
+      category_id: filterOptions.category?.value,
+      brand_id: filterOptions.brand?.value,
+      cursor: undefined,
+    });
+  }, [debouncedSearch]);
 
   return (
     <div className="flex h-[56px] w-full items-center gap-4 border-b border-gray-200 bg-[#F9FAFB] px-4">
@@ -38,10 +82,8 @@ export default function ProductFilters() {
           size={16}
         />
         <input
-          value={filterOptions.search}
-          onChange={(e) =>
-            setFilterOptions((prev) => ({ ...prev, search: e.target.value }))
-          }
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
           type="text"
           placeholder="Search by name, SKU"
           className="h-9 w-full rounded-lg border border-gray-200 pl-10 pr-3 text-[13px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
@@ -51,30 +93,38 @@ export default function ProductFilters() {
       {/* Selectors */}
       <div className="flex items-center gap-2">
         <FilterButton
-          label="Category"
-          selectedValue={filterOptions.category || "All Categories"}
-          onSelect={(cat) =>
-            setFilterOptions((prev) => ({ ...prev, category: cat }))
+          label="Categories"
+          options={categoriesOptions}
+          selectedValue={filterOptions.category}
+          onSelect={(category) =>
+            setFilterOptions((prev) => ({ ...prev, category: category }))
           }
+          loading={isCategoryLoading}
+          onSearch={(val) => fetchCategories({ search: val })}
         />
+
         <FilterButton
-          label="Brand"
-          selectedValue={filterOptions.brand || "All Brands"}
+          label="Brands"
+          options={brandsOptions}
+          selectedValue={filterOptions.brand}
           onSelect={(brand) =>
             setFilterOptions((prev) => ({ ...prev, brand: brand }))
           }
+          loading={isBrandLoading}
+          onSearch={(val) => fetchBrands({ search: val })}
         />
       </div>
 
       <div className="ml-auto">
         <Button
-          onClick={() =>
+          onClick={() => {
             setFilterOptions({
               category: undefined,
               brand: undefined,
-              search: "",
-            })
-          }
+            });
+
+            setSearchInput("");
+          }}
           variant="ghost"
           className="text-[12px] text-gray-500 hover:text-gray-900 h-8"
         >
@@ -84,13 +134,3 @@ export default function ProductFilters() {
     </div>
   );
 }
-
-// function FilterButton({ label, value }: { label: string; value: string }) {
-//   return (
-//     <button className="flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[13px] text-gray-600 hover:bg-gray-50">
-//       <span className="text-gray-400 font-normal">{label}:</span>
-//       <span className="font-medium text-gray-900">{value}</span>
-//       <ChevronDown size={14} className="text-gray-400" />
-//     </button>
-//   );
-// }

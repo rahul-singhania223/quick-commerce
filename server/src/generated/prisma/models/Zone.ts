@@ -27,26 +27,29 @@ export type AggregateZone = {
 export type ZoneMinAggregateOutputType = {
   id: string | null
   name: string | null
-  isActive: boolean | null
-  createdAt: Date | null
-  updatedAt: Date | null
+  city: string | null
+  is_active: boolean | null
+  created_at: Date | null
+  updated_at: Date | null
 }
 
 export type ZoneMaxAggregateOutputType = {
   id: string | null
   name: string | null
-  isActive: boolean | null
-  createdAt: Date | null
-  updatedAt: Date | null
+  city: string | null
+  is_active: boolean | null
+  created_at: Date | null
+  updated_at: Date | null
 }
 
 export type ZoneCountAggregateOutputType = {
   id: number
   name: number
+  city: number
   boundary: number
-  isActive: number
-  createdAt: number
-  updatedAt: number
+  is_active: number
+  created_at: number
+  updated_at: number
   _all: number
 }
 
@@ -54,26 +57,29 @@ export type ZoneCountAggregateOutputType = {
 export type ZoneMinAggregateInputType = {
   id?: true
   name?: true
-  isActive?: true
-  createdAt?: true
-  updatedAt?: true
+  city?: true
+  is_active?: true
+  created_at?: true
+  updated_at?: true
 }
 
 export type ZoneMaxAggregateInputType = {
   id?: true
   name?: true
-  isActive?: true
-  createdAt?: true
-  updatedAt?: true
+  city?: true
+  is_active?: true
+  created_at?: true
+  updated_at?: true
 }
 
 export type ZoneCountAggregateInputType = {
   id?: true
   name?: true
+  city?: true
   boundary?: true
-  isActive?: true
-  createdAt?: true
-  updatedAt?: true
+  is_active?: true
+  created_at?: true
+  updated_at?: true
   _all?: true
 }
 
@@ -152,10 +158,11 @@ export type ZoneGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type ZoneGroupByOutputType = {
   id: string
   name: string
+  city: string
   boundary: runtime.JsonValue
-  isActive: boolean
-  createdAt: Date
-  updatedAt: Date
+  is_active: boolean
+  created_at: Date
+  updated_at: Date
   _count: ZoneCountAggregateOutputType | null
   _min: ZoneMinAggregateOutputType | null
   _max: ZoneMaxAggregateOutputType | null
@@ -182,43 +189,51 @@ export type ZoneWhereInput = {
   NOT?: Prisma.ZoneWhereInput | Prisma.ZoneWhereInput[]
   id?: Prisma.StringFilter<"Zone"> | string
   name?: Prisma.StringFilter<"Zone"> | string
+  city?: Prisma.StringFilter<"Zone"> | string
   boundary?: Prisma.JsonFilter<"Zone">
-  isActive?: Prisma.BoolFilter<"Zone"> | boolean
-  createdAt?: Prisma.DateTimeFilter<"Zone"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Zone"> | Date | string
-  Stores?: Prisma.StoreListRelationFilter
+  is_active?: Prisma.BoolFilter<"Zone"> | boolean
+  created_at?: Prisma.DateTimeFilter<"Zone"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Zone"> | Date | string
+  stores?: Prisma.StoreListRelationFilter
+  stats?: Prisma.ZoneStatListRelationFilter
 }
 
 export type ZoneOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  city?: Prisma.SortOrder
   boundary?: Prisma.SortOrder
-  isActive?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
-  Stores?: Prisma.StoreOrderByRelationAggregateInput
+  is_active?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+  stores?: Prisma.StoreOrderByRelationAggregateInput
+  stats?: Prisma.ZoneStatOrderByRelationAggregateInput
 }
 
 export type ZoneWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  name?: string
+  name_city?: Prisma.ZoneNameCityCompoundUniqueInput
   AND?: Prisma.ZoneWhereInput | Prisma.ZoneWhereInput[]
   OR?: Prisma.ZoneWhereInput[]
   NOT?: Prisma.ZoneWhereInput | Prisma.ZoneWhereInput[]
-  name?: Prisma.StringFilter<"Zone"> | string
+  city?: Prisma.StringFilter<"Zone"> | string
   boundary?: Prisma.JsonFilter<"Zone">
-  isActive?: Prisma.BoolFilter<"Zone"> | boolean
-  createdAt?: Prisma.DateTimeFilter<"Zone"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Zone"> | Date | string
-  Stores?: Prisma.StoreListRelationFilter
-}, "id">
+  is_active?: Prisma.BoolFilter<"Zone"> | boolean
+  created_at?: Prisma.DateTimeFilter<"Zone"> | Date | string
+  updated_at?: Prisma.DateTimeFilter<"Zone"> | Date | string
+  stores?: Prisma.StoreListRelationFilter
+  stats?: Prisma.ZoneStatListRelationFilter
+}, "id" | "name" | "name_city">
 
 export type ZoneOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  city?: Prisma.SortOrder
   boundary?: Prisma.SortOrder
-  isActive?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
   _count?: Prisma.ZoneCountOrderByAggregateInput
   _max?: Prisma.ZoneMaxOrderByAggregateInput
   _min?: Prisma.ZoneMinOrderByAggregateInput
@@ -230,102 +245,127 @@ export type ZoneScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ZoneScalarWhereWithAggregatesInput | Prisma.ZoneScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Zone"> | string
   name?: Prisma.StringWithAggregatesFilter<"Zone"> | string
+  city?: Prisma.StringWithAggregatesFilter<"Zone"> | string
   boundary?: Prisma.JsonWithAggregatesFilter<"Zone">
-  isActive?: Prisma.BoolWithAggregatesFilter<"Zone"> | boolean
-  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Zone"> | Date | string
-  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Zone"> | Date | string
+  is_active?: Prisma.BoolWithAggregatesFilter<"Zone"> | boolean
+  created_at?: Prisma.DateTimeWithAggregatesFilter<"Zone"> | Date | string
+  updated_at?: Prisma.DateTimeWithAggregatesFilter<"Zone"> | Date | string
 }
 
 export type ZoneCreateInput = {
   id?: string
   name: string
+  city: string
   boundary: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  Stores?: Prisma.StoreCreateNestedManyWithoutZoneInput
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  stores?: Prisma.StoreCreateNestedManyWithoutZoneInput
+  stats?: Prisma.ZoneStatCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneUncheckedCreateInput = {
   id?: string
   name: string
+  city: string
   boundary: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  Stores?: Prisma.StoreUncheckedCreateNestedManyWithoutZoneInput
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  stores?: Prisma.StoreUncheckedCreateNestedManyWithoutZoneInput
+  stats?: Prisma.ZoneStatUncheckedCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   boundary?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Stores?: Prisma.StoreUpdateManyWithoutZoneNestedInput
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stores?: Prisma.StoreUpdateManyWithoutZoneNestedInput
+  stats?: Prisma.ZoneStatUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   boundary?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Stores?: Prisma.StoreUncheckedUpdateManyWithoutZoneNestedInput
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stores?: Prisma.StoreUncheckedUpdateManyWithoutZoneNestedInput
+  stats?: Prisma.ZoneStatUncheckedUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneCreateManyInput = {
   id?: string
   name: string
+  city: string
   boundary: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
 }
 
 export type ZoneUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   boundary?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ZoneUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   boundary?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ZoneNameCityCompoundUniqueInput = {
+  name: string
+  city: string
 }
 
 export type ZoneCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  city?: Prisma.SortOrder
   boundary?: Prisma.SortOrder
-  isActive?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type ZoneMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  isActive?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
 }
 
 export type ZoneMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  isActive?: Prisma.SortOrder
-  createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
+  created_at?: Prisma.SortOrder
+  updated_at?: Prisma.SortOrder
+}
+
+export type ZoneScalarRelationFilter = {
+  is?: Prisma.ZoneWhereInput
+  isNot?: Prisma.ZoneWhereInput
 }
 
 export type ZoneNullableScalarRelationFilter = {
@@ -335,6 +375,20 @@ export type ZoneNullableScalarRelationFilter = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type ZoneCreateNestedOneWithoutStatsInput = {
+  create?: Prisma.XOR<Prisma.ZoneCreateWithoutStatsInput, Prisma.ZoneUncheckedCreateWithoutStatsInput>
+  connectOrCreate?: Prisma.ZoneCreateOrConnectWithoutStatsInput
+  connect?: Prisma.ZoneWhereUniqueInput
+}
+
+export type ZoneUpdateOneRequiredWithoutStatsNestedInput = {
+  create?: Prisma.XOR<Prisma.ZoneCreateWithoutStatsInput, Prisma.ZoneUncheckedCreateWithoutStatsInput>
+  connectOrCreate?: Prisma.ZoneCreateOrConnectWithoutStatsInput
+  upsert?: Prisma.ZoneUpsertWithoutStatsInput
+  connect?: Prisma.ZoneWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ZoneUpdateToOneWithWhereWithoutStatsInput, Prisma.ZoneUpdateWithoutStatsInput>, Prisma.ZoneUncheckedUpdateWithoutStatsInput>
 }
 
 export type ZoneCreateNestedOneWithoutStoresInput = {
@@ -353,22 +407,86 @@ export type ZoneUpdateOneWithoutStoresNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ZoneUpdateToOneWithWhereWithoutStoresInput, Prisma.ZoneUpdateWithoutStoresInput>, Prisma.ZoneUncheckedUpdateWithoutStoresInput>
 }
 
+export type ZoneCreateWithoutStatsInput = {
+  id?: string
+  name: string
+  city: string
+  boundary: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  stores?: Prisma.StoreCreateNestedManyWithoutZoneInput
+}
+
+export type ZoneUncheckedCreateWithoutStatsInput = {
+  id?: string
+  name: string
+  city: string
+  boundary: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  stores?: Prisma.StoreUncheckedCreateNestedManyWithoutZoneInput
+}
+
+export type ZoneCreateOrConnectWithoutStatsInput = {
+  where: Prisma.ZoneWhereUniqueInput
+  create: Prisma.XOR<Prisma.ZoneCreateWithoutStatsInput, Prisma.ZoneUncheckedCreateWithoutStatsInput>
+}
+
+export type ZoneUpsertWithoutStatsInput = {
+  update: Prisma.XOR<Prisma.ZoneUpdateWithoutStatsInput, Prisma.ZoneUncheckedUpdateWithoutStatsInput>
+  create: Prisma.XOR<Prisma.ZoneCreateWithoutStatsInput, Prisma.ZoneUncheckedCreateWithoutStatsInput>
+  where?: Prisma.ZoneWhereInput
+}
+
+export type ZoneUpdateToOneWithWhereWithoutStatsInput = {
+  where?: Prisma.ZoneWhereInput
+  data: Prisma.XOR<Prisma.ZoneUpdateWithoutStatsInput, Prisma.ZoneUncheckedUpdateWithoutStatsInput>
+}
+
+export type ZoneUpdateWithoutStatsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  boundary?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stores?: Prisma.StoreUpdateManyWithoutZoneNestedInput
+}
+
+export type ZoneUncheckedUpdateWithoutStatsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  boundary?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stores?: Prisma.StoreUncheckedUpdateManyWithoutZoneNestedInput
+}
+
 export type ZoneCreateWithoutStoresInput = {
   id?: string
   name: string
+  city: string
   boundary: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  stats?: Prisma.ZoneStatCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneUncheckedCreateWithoutStoresInput = {
   id?: string
   name: string
+  city: string
   boundary: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: boolean
-  createdAt?: Date | string
-  updatedAt?: Date | string
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  stats?: Prisma.ZoneStatUncheckedCreateNestedManyWithoutZoneInput
 }
 
 export type ZoneCreateOrConnectWithoutStoresInput = {
@@ -390,19 +508,23 @@ export type ZoneUpdateToOneWithWhereWithoutStoresInput = {
 export type ZoneUpdateWithoutStoresInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   boundary?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stats?: Prisma.ZoneStatUpdateManyWithoutZoneNestedInput
 }
 
 export type ZoneUncheckedUpdateWithoutStoresInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   boundary?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stats?: Prisma.ZoneStatUncheckedUpdateManyWithoutZoneNestedInput
 }
 
 
@@ -411,11 +533,13 @@ export type ZoneUncheckedUpdateWithoutStoresInput = {
  */
 
 export type ZoneCountOutputType = {
-  Stores: number
+  stores: number
+  stats: number
 }
 
 export type ZoneCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Stores?: boolean | ZoneCountOutputTypeCountStoresArgs
+  stores?: boolean | ZoneCountOutputTypeCountStoresArgs
+  stats?: boolean | ZoneCountOutputTypeCountStatsArgs
 }
 
 /**
@@ -435,48 +559,61 @@ export type ZoneCountOutputTypeCountStoresArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.StoreWhereInput
 }
 
+/**
+ * ZoneCountOutputType without action
+ */
+export type ZoneCountOutputTypeCountStatsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ZoneStatWhereInput
+}
+
 
 export type ZoneSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  city?: boolean
   boundary?: boolean
-  isActive?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
-  Stores?: boolean | Prisma.Zone$StoresArgs<ExtArgs>
+  is_active?: boolean
+  created_at?: boolean
+  updated_at?: boolean
+  stores?: boolean | Prisma.Zone$storesArgs<ExtArgs>
+  stats?: boolean | Prisma.Zone$statsArgs<ExtArgs>
   _count?: boolean | Prisma.ZoneCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["zone"]>
 
 export type ZoneSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  city?: boolean
   boundary?: boolean
-  isActive?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
+  is_active?: boolean
+  created_at?: boolean
+  updated_at?: boolean
 }, ExtArgs["result"]["zone"]>
 
 export type ZoneSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  city?: boolean
   boundary?: boolean
-  isActive?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
+  is_active?: boolean
+  created_at?: boolean
+  updated_at?: boolean
 }, ExtArgs["result"]["zone"]>
 
 export type ZoneSelectScalar = {
   id?: boolean
   name?: boolean
+  city?: boolean
   boundary?: boolean
-  isActive?: boolean
-  createdAt?: boolean
-  updatedAt?: boolean
+  is_active?: boolean
+  created_at?: boolean
+  updated_at?: boolean
 }
 
-export type ZoneOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "boundary" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["zone"]>
+export type ZoneOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "city" | "boundary" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["zone"]>
 export type ZoneInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Stores?: boolean | Prisma.Zone$StoresArgs<ExtArgs>
+  stores?: boolean | Prisma.Zone$storesArgs<ExtArgs>
+  stats?: boolean | Prisma.Zone$statsArgs<ExtArgs>
   _count?: boolean | Prisma.ZoneCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ZoneIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -485,15 +622,25 @@ export type ZoneIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $ZonePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Zone"
   objects: {
-    Stores: Prisma.$StorePayload<ExtArgs>[]
+    stores: Prisma.$StorePayload<ExtArgs>[]
+    stats: Prisma.$ZoneStatPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    city: string
+    /**
+     * GeoJSON Polygon
+     * Example:
+     * {
+     * "type": "Polygon",
+     * "coordinates": [[[lng, lat], [lng, lat], ...]]
+     * }
+     */
     boundary: runtime.JsonValue
-    isActive: boolean
-    createdAt: Date
-    updatedAt: Date
+    is_active: boolean
+    created_at: Date
+    updated_at: Date
   }, ExtArgs["result"]["zone"]>
   composites: {}
 }
@@ -888,7 +1035,8 @@ readonly fields: ZoneFieldRefs;
  */
 export interface Prisma__ZoneClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  Stores<T extends Prisma.Zone$StoresArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Zone$StoresArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StorePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  stores<T extends Prisma.Zone$storesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Zone$storesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StorePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  stats<T extends Prisma.Zone$statsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Zone$statsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ZoneStatPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -920,10 +1068,11 @@ export interface Prisma__ZoneClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface ZoneFieldRefs {
   readonly id: Prisma.FieldRef<"Zone", 'String'>
   readonly name: Prisma.FieldRef<"Zone", 'String'>
+  readonly city: Prisma.FieldRef<"Zone", 'String'>
   readonly boundary: Prisma.FieldRef<"Zone", 'Json'>
-  readonly isActive: Prisma.FieldRef<"Zone", 'Boolean'>
-  readonly createdAt: Prisma.FieldRef<"Zone", 'DateTime'>
-  readonly updatedAt: Prisma.FieldRef<"Zone", 'DateTime'>
+  readonly is_active: Prisma.FieldRef<"Zone", 'Boolean'>
+  readonly created_at: Prisma.FieldRef<"Zone", 'DateTime'>
+  readonly updated_at: Prisma.FieldRef<"Zone", 'DateTime'>
 }
     
 
@@ -1312,9 +1461,9 @@ export type ZoneDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * Zone.Stores
+ * Zone.stores
  */
-export type Zone$StoresArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Zone$storesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Store
    */
@@ -1333,6 +1482,30 @@ export type Zone$StoresArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.StoreScalarFieldEnum | Prisma.StoreScalarFieldEnum[]
+}
+
+/**
+ * Zone.stats
+ */
+export type Zone$statsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ZoneStat
+   */
+  select?: Prisma.ZoneStatSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ZoneStat
+   */
+  omit?: Prisma.ZoneStatOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ZoneStatInclude<ExtArgs> | null
+  where?: Prisma.ZoneStatWhereInput
+  orderBy?: Prisma.ZoneStatOrderByWithRelationInput | Prisma.ZoneStatOrderByWithRelationInput[]
+  cursor?: Prisma.ZoneStatWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ZoneStatScalarFieldEnum | Prisma.ZoneStatScalarFieldEnum[]
 }
 
 /**

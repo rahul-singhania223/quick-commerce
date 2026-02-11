@@ -11,28 +11,23 @@ interface QueryParams {
   created_at?: SortOrder;
   search?: string;
   parent_id?: string;
+  limit?: number;
+  cursor?: string;
 }
 export const getAllCategories = async ({
   is_active,
   sort_name,
-  created_at,
+  created_at = "desc",
   search,
   parent_id,
+  limit = 20,
+  cursor,
 }: QueryParams) => {
   try {
-    // TODO: Add pagination
-
-    const where: Prisma.CategoryWhereInput = {};
-
-    // filter: active / inactive
-    if (is_active !== undefined) {
-      where.is_active = is_active;
-    }
-
-    // by parent id
-    if (parent_id) {
-      where.parent_id = parent_id;
-    }
+    const where: Prisma.CategoryWhereInput = {
+      is_active,
+      parent_id,
+    };
 
     // search: name OR slug
     if (search && search.trim() !== "") {
@@ -52,29 +47,52 @@ export const getAllCategories = async ({
       ];
     }
 
-    // sorting
-    const orderBy: Prisma.CategoryOrderByWithRelationInput = {
-      created_at: created_at || "desc",
-    };
+    // stable ordering
+    const orderBy: Prisma.CategoryOrderByWithRelationInput[] = [
+      { created_at },
+      { id: "desc" }, // tie breaker (CRITICAL)
+    ];
 
     if (sort_name) {
-      orderBy.name = sort_name;
+      orderBy.unshift({ name: sort_name });
     }
 
     const categories = await db.category.findMany({
       where,
       orderBy,
-      include: {
+      take: Number(limit) + 1, // Fetch extra to detect next page
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1,
+      }),
+      select: {
+        id: true,
+        name: true,
+        is_active: true,
+        products_count: true,
+        brands_count: true,
+        level: true,
         parent: {
-          select: {
-            name: true,
-          },
+          select: { id: true, name: true },
         },
-        _count: { select: { products: true, children: true } },
       },
     });
-    return categories;
+
+    // detect next page
+    let nextCursor: string | null = null;
+
+    if (categories.length > limit) {
+      const nextItem = categories.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    return {
+      data: categories,
+      nextCursor,
+      hasMore: !!nextCursor,
+    };
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
@@ -89,46 +107,68 @@ export const getCategory = async ({
   slug?: string;
   name?: string;
 }) => {
-  const constraints = [];
-
-  if (id) constraints.push({ id });
-  if (slug) constraints.push({ slug });
-  if (name) constraints.push({ name });
-
-  if (constraints.length === 0) return null;
+  const where: Prisma.CategoryWhereInput = {
+    id,
+    slug,
+    name,
+  };
 
   return db.category.findFirst({
-    where: {
-      OR: constraints,
+    where,
+    select: {
+      id: true,
+      name: true,
+      level: true,
+      products_count: true,
+      brands_count: true,
+      sort_order: true,
     },
   });
 };
 
 // create category
-export const createCategory = async (data: Category) => {
+export const createCategory = async (data: Prisma.CategoryCreateInput) => {
   try {
     const category = await db.category.create({
       data,
-      include: {
-        parent: { select: { name: true } },
-        _count: { select: { products: true, children: true } },
+      select: {
+        id: true,
+        name: true,
+        is_active: true,
+        products_count: true,
+        brands_count: true,
+        level: true,
+        parent: {
+          select: { id: true, name: true },
+        },
       },
     });
     return category;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
 
 // update category
-export const updateCategory = async (id: string, data: Category) => {
+export const updateCategory = async (
+  id: string,
+  data: Prisma.CategoryUpdateInput,
+) => {
   try {
     const category = await db.category.update({
       where: { id },
       data,
-      include: {
-        parent: { select: { name: true } },
-        _count: { select: { products: true, children: true } },
+      select: {
+        id: true,
+        name: true,
+        is_active: true,
+        products_count: true,
+        brands_count: true,
+        level: true,
+        parent: {
+          select: { id: true, name: true },
+        },
       },
     });
     return category;
@@ -143,15 +183,55 @@ export const deleteCategory = async (id: string) => {
     const category = await db.category.delete({ where: { id } });
     return category;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };
 
-// get categories count
-export const getCategoriesCount = async () => {
+// get categories stats
+export const getCategoryStats = async () => {
   try {
-    const count = await db.category.count();
-    return count;
+    const categoryStats = await db.stats.findFirst({
+      select: { categories_count: true },
+    });
+    return categoryStats;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+// Increase category counts
+export const increaseCategoryCount = async () => {
+  try {
+    const stats = await db.stats.findFirst();
+    const updatedStats = await db.stats.update({
+      where: { id: stats?.id },
+      data: stats
+        ? { categories_count: stats.categories_count + 1 }
+        : { categories_count: 1 },
+      select: { categories_count: true },
+    });
+    return updatedStats;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+
+// Decrease category counts
+export const decreaseCategoryCount = async () => {
+  try {
+    const stats = await db.stats.findFirst();
+    const updatedStats = await db.stats.update({
+      where: { id: stats?.id },
+      data: stats
+        ? { categories_count: stats.categories_count - 1 }
+        : { categories_count: 0 },
+      select: { categories_count: true },
+    });
+    return updatedStats;
   } catch (error) {
     console.log(error);
     return null;

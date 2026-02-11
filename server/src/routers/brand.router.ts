@@ -8,7 +8,7 @@ import {
   deleteBrand,
   getAllBrands,
   getBrand,
-  getBrandsCount,
+  getBrandStats,
   updateBrand,
 } from "../controllers/brand.controller.js";
 import { validateForm } from "../middleware/validate.middleware.js";
@@ -16,16 +16,16 @@ import { brandFormSchema } from "../schemas/brand.schema.js";
 
 const router = Router();
 
-// GET ALL BRANDS
-router.get("/", getAllBrands);
-
 // GET BRANDS COUNT
 router.get(
-  "/count",
+  "/stats",
   // authorizeUser,
   //  authorizeAdmin,
-  getBrandsCount,
+  getBrandStats,
 );
+
+// GET ALL BRANDS
+router.get("/", getAllBrands);
 
 // GET BRAND
 router.get("/:id", getBrand);

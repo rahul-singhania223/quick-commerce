@@ -1,9 +1,8 @@
 import { Colors } from "@/src/constants/theme";
 import { useModal } from "@/src/store/modal.store";
 import { Bell, ChevronDown, MapPin } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import AddressSelector from "./address-selector";
-import { useToastStore } from "@/src/store/toast.store";
 
 const addressOptions = [
   {
@@ -32,26 +31,18 @@ export default function Navbar() {
         <View style={styles.address}>
           <MapPin size={14} fill={"white"} stroke={Colors.primary} />
           <Text style={styles.addressText}>Deliver to:</Text>
-          <Pressable
+          <TouchableOpacity
             onPress={() => onOpen("Select Address", <AddressSelector />)}
-            style={({ pressed }) => [
-              styles.addressDropdownTrigger,
-              pressed && { backgroundColor: Colors.muted, borderRadius: 8 },
-            ]}
+            style={styles.addressDropdownTrigger}
           >
             <Text style={styles.addressValue}>Delhi NCR</Text>
             <ChevronDown size={15} color={Colors.mutedForeground} />
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
-        <Pressable
+        <TouchableOpacity
           onPress={() => onOpen("Notification", <View></View>)}
-          style={({ pressed }) => [
-            pressed && {
-              backgroundColor: Colors.muted,
-            },
-            { borderRadius: 50, padding: 8 },
-          ]}
+          style={styles.addressDropdownTrigger}
         >
           <View style={styles.notification}>
             <Bell size={21} color={Colors.foreground} strokeWidth={1.8} />
@@ -67,7 +58,7 @@ export default function Navbar() {
               }}
             />
           </View>
-        </Pressable>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -75,24 +66,26 @@ export default function Navbar() {
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    // position: "absolute",
+    // top: 0,
+    // left: 0,
+    // right: 0,
     paddingHorizontal: 16,
     paddingBottom: 8,
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
     gap: 8,
-    zIndex: 10,
+    // zIndex: 10,
     backgroundColor: "#fff",
-    height: 70,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2, // Android
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    // height: 70,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 1 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 2,
+    // elevation: 2, // Android
   },
   address: {
     flexDirection: "row",

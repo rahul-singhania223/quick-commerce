@@ -368,10 +368,6 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
@@ -382,10 +378,6 @@ export type EnumRoleFieldUpdateOperationsInput = {
 
 export type EnumStatusFieldUpdateOperationsInput = {
   set?: $Enums.Status
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
 }
 
 export type UserCreateNestedOneWithoutStoresInput = {

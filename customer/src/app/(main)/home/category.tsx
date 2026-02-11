@@ -30,11 +30,11 @@ export default function Category({ name, image, style, imageStyle }: CategoryPro
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 12,
   },
   imageContainer: {
-    width: 64,
-    height: 64,
+    width: 70,
+    height: 70,
     borderRadius: 50,
     padding: 6,
     overflow: "hidden",

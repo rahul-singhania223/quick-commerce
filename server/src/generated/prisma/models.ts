@@ -8,8 +8,10 @@
  *
  * 🟢 You can import this file directly.
  */
+export type * from './models/Stats.js'
 export type * from './models/User.js'
 export type * from './models/Zone.js'
+export type * from './models/ZoneStat.js'
 export type * from './models/Store.js'
 export type * from './models/Product.js'
 export type * from './models/Category.js'

@@ -8,6 +8,7 @@ import {
   CreateProductPayload,
   ErrorResponse,
   Product,
+  ProductStats,
   ProductWithRelations,
   SuccessResponse,
   UpdateBrandPayload,
@@ -20,31 +21,48 @@ export class ProductServices {
   // ================================
 
   static async getAllProducts(query?: {
-    is_active?: string;
+    is_active?: "1" | "0";
     name?: string;
-    created_at?: string;
+    created_at?: "asc" | "desc";
     search?: string;
-    category?: string;
-    brand?: string;
-  }): Promise<ProductWithRelations[] | null> {
+    category_id?: string;
+    brand_id?: string;
+    limit?: number;
+    cursor?: string;
+  }): Promise<{
+    data: ProductWithRelations[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  } | null> {
     try {
-      let url = "/product/?";
+      let url = "/product";
 
-      if (query?.search) url += `search=${query.search}`;
-      if (query?.is_active) url += `&is_active=${query.is_active}`;
-      if (query?.name) url += `&name=${query.name}`;
-      if (query?.created_at) url += `&created_at=${query.created_at}`;
-      if (query?.category) url += `&category=${query.category}`;
-      if (query?.brand) url += `&brand=${query.brand}`;
+      if (query) {
+        const params = new URLSearchParams();
+
+        Object.entries(query).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            params.append(key, String(value));
+          }
+        });
+
+        const queryString = params.toString();
+        if (queryString) url += `?${queryString}`;
+      }
 
       const res = await api.get(url);
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success") return null;
 
-      return resData.data as ProductWithRelations[];
+      return resData.data as {
+        data: ProductWithRelations[];
+        nextCursor: string | null;
+        hasMore: boolean;
+      };
     } catch (error) {
-      console.log(error);
+      const errData = error as AxiosError;
+      console.log(errData.response);
       return null;
     }
   }
@@ -138,27 +156,27 @@ export class ProductServices {
   }
 
   // ================================
-  // GET PRODUCTS COUNT
+  // GET PRODUCTS STATS
   // ================================
-  static async getProductsCount(): Promise<{
+  static async getProductStats(): Promise<{
     error: string | null;
-    count: number | null;
+    stats: ProductStats | null;
   }> {
     try {
-      const res = await api.get("/product/count");
+      const res = await api.get("/product/stats");
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success")
-        return { error: resData.message, count: null };
+        return { error: resData.message, stats: null };
 
-      return { error: null, count: resData.data.count as number };
+      return { error: null, stats: resData.data as ProductStats };
     } catch (error) {
       console.log(error);
       const err = error as AxiosError;
       const errData = err.response?.data as ErrorResponse;
       return {
-        error: errData.message || "Couldn't get products count!",
-        count: null,
+        error: errData.message || "Couldn't get products stats!",
+        stats: null,
       };
     }
   }

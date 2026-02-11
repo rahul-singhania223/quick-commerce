@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Edit2,
@@ -6,10 +6,12 @@ import {
   ExternalLink,
   Trash2,
   Loader2,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
-import { useBrandsStore } from "@/src/store/brands.store";
+import { useBrandsQueryStore, useBrandsStore } from "@/src/store/brands.store";
 import { Button } from "@/src/components/ui/button";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { set } from "zod";
 import { useAlertStore } from "@/src/store/alert.store";
 import { id } from "zod/v4/locales";
@@ -23,14 +25,43 @@ export default function BrandsTable({
 }: {
   onEdit: (id: string) => void;
 }) {
-  const { brands: brandsMap, removeBrand } = useBrandsStore();
+  const {
+    brands: brandsMap,
+    removeBrand,
+    brandStats,
+    cursor,
+    hasMore,
+    fetchBrands,
+  } = useBrandsStore();
+  const { query, resetQuery } = useBrandsQueryStore();
   const { show } = useAlertStore();
 
   const router = useRouter();
 
-  const brands = Array.from(brandsMap.values());
-
+  const [currentPage, setCurrentPage] = useState(1);
   const [deleting, setDeleting] = useState("");
+  const pageSize = 20;
+
+  const brandsList = useMemo(() => {
+    return Array.from(brandsMap.values());
+  }, [brandsMap]);
+
+  const paginatedBrands = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return brandsList.slice(startIndex, endIndex);
+  }, [brandsList, currentPage]);
+
+  const totalPages = Math.ceil(
+    brandStats ? brandStats.brands_count / pageSize : 1,
+  );
+
+  const fetchPaginatedBrands = async () => {
+    if (currentPage * pageSize <= brandsMap.size) return;
+    if (!hasMore) return;
+    if (!cursor) return;
+    fetchBrands({ ...query, cursor: cursor });
+  };
 
   const deleteBrand = async (id: string) => {
     try {
@@ -63,6 +94,14 @@ export default function BrandsTable({
     });
   };
 
+  useEffect(() => {
+    fetchPaginatedBrands();
+  }, [currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query]);
+
   return (
     <div className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white">
       <div className="overflow-x-auto">
@@ -88,7 +127,7 @@ export default function BrandsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {brands.map((brand) => (
+            {paginatedBrands.map((brand) => (
               <tr
                 key={brand.id}
                 className="group h-[56px] transition-colors hover:bg-gray-50"
@@ -124,10 +163,8 @@ export default function BrandsTable({
 
                 {/* Products Count */}
                 <td className="px-4 text-center">
-                  <button
-                    className="inline-flex items-center gap-1 text-[13px] font-medium text-gray-900 hover:text-blue-600"
-                  >
-                    {brand._count.products}
+                  <button className="inline-flex items-center gap-1 text-[13px] font-medium text-gray-900 hover:text-blue-600">
+                    {brand.products_count}
                     {/* <ExternalLink
                       size={12}
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
@@ -180,6 +217,61 @@ export default function BrandsTable({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* COMPONENT 8: Pagination Controls */}
+      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50/50">
+        <div className="text-[13px] text-gray-500 space-x-2"></div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronLeft size={16} />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {[...Array(Math.ceil(brandsList.length / pageSize))].map(
+              (_, i) => {
+                const pageNum = i + 1;
+                // Simple logic to only show few page numbers if there are many
+                if (totalPages > 5 && Math.abs(pageNum - currentPage) > 2)
+                  return null;
+
+                return (
+                  <Button
+                    type="button"
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "ghost"}
+                    size="sm"
+                    className={`h-8 w-8 p-0 text-[13px] ${currentPage === pageNum ? "bg-primary hover:bg-primary/95" : ""}`}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              },
+            )}
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+            }}
+            disabled={!hasMore}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight size={16} />
+          </Button>
+        </div>
       </div>
     </div>
   );

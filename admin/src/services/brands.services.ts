@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { api } from "../config/axios.config";
 import {
   Brand,
+  BrandStats,
   CreateBrandPayload,
   ErrorResponse,
   SuccessResponse,
@@ -18,23 +19,42 @@ export class BrandsServices {
     name?: string;
     created_at?: string;
     search?: string;
-  }): Promise<Brand[] | null> {
+    cursor?: string;
+    limit?: number;
+  }): Promise<{
+    data: Brand[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  } | null> {
     try {
-      let url = "/brands/?";
+      let url = "/brands/";
 
-      if (query?.search) url += `&search=${query.search}`;
-      if (query?.is_active) url += `&is_active=${query.is_active}`;
-      if (query?.name) url += `&name=${query.name}`;
-      if (query?.created_at) url += `&created_at=${query.created_at}`;
+      if (query) {
+        const params = new URLSearchParams();
+
+        Object.entries(query).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            params.append(key, String(value));
+          }
+        });
+
+        const queryString = params.toString();
+        if (queryString) url += `?${queryString}`;
+      }
 
       const res = await api.get(url);
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success") return null;
 
-      return resData.data as Brand[];
+      return resData.data as {
+        data: Brand[];
+        nextCursor: string | null;
+        hasMore: boolean;
+      };
     } catch (error) {
-      console.log(error);
+      const errData = error as AxiosError;
+      console.log(errData.response);
       return null;
     }
   }
@@ -120,27 +140,27 @@ export class BrandsServices {
   }
 
   // ================================
-  // GET BRANDS COUNT
+  // GET BRANDS STATS
   // ================================
-  static async getBrandsCount(): Promise<{
+  static async getBrandStats(): Promise<{
     error: string | null;
-    count: number | null;
+    stats: BrandStats | null;
   }> {
     try {
-      const res = await api.get("/brands/count");
+      const res = await api.get("/brands/stats");
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success")
-        return { error: resData.message, count: null };
+        return { error: resData.message, stats: null };
 
-      return { error: null, count: resData.data.count as number };
+      return { error: null, stats: resData.data as BrandStats };
     } catch (error) {
       console.log(error);
       const err = error as AxiosError;
       const errData = err.response?.data as ErrorResponse;
       return {
-        error: errData.message || "Couldn't get brands count!",
-        count: null,
+        error: errData.message || "Couldn't get brands stats!",
+        stats: null,
       };
     }
   }

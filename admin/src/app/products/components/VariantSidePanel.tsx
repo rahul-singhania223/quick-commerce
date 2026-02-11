@@ -18,6 +18,7 @@ import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
+import { useProductsStore } from "@/src/store/products.store";
 
 interface VariantSidePanelProps {
   productId: string;
@@ -39,6 +40,8 @@ export default function VariantSidePanel({
   const [loadingFailed, setLoadingFailed] = useState(false);
   const [deleting, setDeleting] = useState("");
 
+  const { addProduct, getProduct } = useProductsStore();
+
   const fetchVariants = async () => {
     try {
       setLoading(true);
@@ -56,6 +59,17 @@ export default function VariantSidePanel({
       setDeleting(id);
       const res = await VariantServices.deleteVariant(id);
       if (res.error) return toast.error(res.error);
+
+      const product = getProduct(productId);
+      if (product) {
+        addProduct({
+          ...product,
+          variants_count: product.variants_count
+            ? product.variants_count - 1
+            : 0,
+        });
+      }
+
       fetchVariants();
     } catch (error) {
       console.log(error);

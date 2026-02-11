@@ -5,9 +5,13 @@ import ProductFilters from "./components/ProductsFilter";
 import ProductsTable from "./components/ProductsTable";
 import ProductHeader from "./components/ProductHeader";
 import ProductSidePanel from "./components/ProductSidepanel";
-import { useProductsStore } from "@/src/store/products.store";
+import {
+  useProductQueryStore,
+  useProductsStore,
+} from "@/src/store/products.store";
 import { ProductWithRelations } from "@/src/lib/types";
 import VariantSidePanel from "./components/VariantSidePanel";
+import { useInView } from "react-intersection-observer";
 
 export default function ProductsPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -15,18 +19,26 @@ export default function ProductsPage() {
     null,
   );
 
-  const { productsCount, isLoading, loadingFailed, fetchProducts } =
+  const { productStats, loadingFailed, initialized, fetchProducts } =
     useProductsStore();
 
+  const { query } = useProductQueryStore();
+
   useEffect(() => {
+    if (initialized) return;
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (!initialized) return;
+    fetchProducts(query);
+  }, [query]);
 
   return (
     <div className="flex h-screen flex-col bg-white overflow-hidden">
       {/* Component 1: ProductHeader */}
       <ProductHeader
-        count={productsCount}
+        count={productStats?.products_count || 0}
         onAdd={() => {
           setSelectedProductId(null);
           setIsPanelOpen(true);

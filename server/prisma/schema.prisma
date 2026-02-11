@@ -7,6 +7,19 @@ datasource db {
   provider = "postgresql"
 }
 
+model Stats {
+  id                      String   @id @default(uuid())
+  products_count          Int      @default(0)
+  brands_count            Int      @default(0)
+  categories_count        Int      @default(0)
+  users_count             Int      @default(0)
+  stores_count            Int      @default(0)
+  customers_count         Int      @default(0)
+  delivery_partners_count Int      @default(0)
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+}
+
 model User {
   id         String    @id @default(uuid())
   phone      String    @unique
@@ -20,13 +33,53 @@ model User {
 }
 
 model Zone {
-  id        String   @id @default(uuid())
-  name      String
-  boundary  Json
-  isActive  Boolean  @default(true)
+  id   String @id @default(uuid())
+  name String @unique
+  city String
+
+  /// GeoJSON Polygon
+  /// Example:
+  /// {
+  ///   "type": "Polygon",
+  ///   "coordinates": [[[lng, lat], [lng, lat], ...]]
+  /// }
+  boundary Json
+
+  is_active Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  stores Store[]
+  // orders Order[]
+  stats  ZoneStat[]
+
+  @@unique([name, city])
+  @@index([city])
+  @@index([is_active])
+}
+
+model ZoneStat {
+  id String @id @default(uuid())
+
+  zoneId String
+  zone   Zone   @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  bucket ZoneTimeBucket
+
+  // minutes
+  avgTime    Float
+  p90Time    Float
+  sampleSize Int
+
+  lastComputedAt DateTime
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Stores    Store[]
+
+  @@unique([zoneId, bucket])
+  @@index([zoneId])
 }
 
 model Store {
@@ -68,6 +121,9 @@ model Product {
 
   is_active Boolean @default(true)
 
+  variants_count       Int? @default(0)
+  store_products_count Int? @default(0)
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -81,6 +137,7 @@ model Product {
   @@index([category_id])
   @@index([brand_id])
   @@index([is_active])
+  @@index([created_at])
 }
 
 model Category {
@@ -94,6 +151,9 @@ model Category {
 
   is_active  Boolean @default(true)
   sort_order Int     @default(0)
+
+  products_count Int? @default(0)
+  brands_count   Int? @default(0)
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -119,6 +179,8 @@ model Brand {
 
   is_active Boolean @default(true)
 
+  products_count Int? @default(0)
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -135,6 +197,7 @@ model ProductVariant {
   product_id String
 
   name String // e.g. "1L", "500ml", "Pack of 6"
+  slug String @unique
 
   weight Decimal?
   unit   String? // g, kg, ml, l, pcs
@@ -245,4 +308,10 @@ enum Store_Status {
 enum Status {
   ACTIVE
   BANNED
+}
+
+enum ZoneTimeBucket {
+  ALL_DAY
+  PEAK
+  OFF_PEAK
 }

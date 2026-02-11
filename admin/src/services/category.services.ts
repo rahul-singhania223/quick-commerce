@@ -3,6 +3,7 @@ import { api } from "../config/axios.config";
 import {
   Brand,
   Category,
+  CategoryStats,
   CreateBrandPayload,
   CreateCategoryPayload,
   ErrorResponse,
@@ -11,35 +12,51 @@ import {
   UpdateCategoryPayload,
 } from "../lib/types";
 
+interface CategoriesResponseData {
+  data: Category[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 export class CategoryServices {
   // ================================
   // GET ALL CATEGORIES
   // ================================
 
   static async getAllCategories(query?: {
-    is_active?: string;
+    is_active?: "1" | "0";
     name?: string;
-    created_at?: string;
+    created_at?: "asc" | "desc";
     search?: string;
     parent_id?: string;
-  }): Promise<Category[] | null> {
+    limit?: number;
+    cursor?: string;
+  }): Promise<CategoriesResponseData | null> {
     try {
-      let url = "/categories/?";
+      let url = "/categories";
 
-      if (query?.parent_id) url += `&parent_id=${query.parent_id}`;
-      if (query?.search) url += `&search=${query.search}`;
-      if (query?.is_active) url += `&is_active=${query.is_active}`;
-      if (query?.name) url += `&name=${query.name}`;
-      if (query?.created_at) url += `&created_at=${query.created_at}`;
+      if (query) {
+        const params = new URLSearchParams();
+
+        Object.entries(query).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            params.append(key, String(value));
+          }
+        });
+
+        const queryString = params.toString();
+        if (queryString) url += `?${queryString}`;
+      }
 
       const res = await api.get(url);
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success") return null;
 
-      return resData.data as Category[];
+      return resData.data as CategoriesResponseData;
     } catch (error) {
-      console.log(error);
+      const errData = error as AxiosError;
+      console.log(errData.response);
       return null;
     }
   }
@@ -133,27 +150,27 @@ export class CategoryServices {
   }
 
   // ================================
-  // GET CATEGORIES COUNT
+  // GET CATEGORIES STATS
   // ================================
-  static async getCategoriesCount(): Promise<{
+  static async getCategoryStats(): Promise<{
     error: string | null;
-    count: number | null;
+    stats: CategoryStats | null;
   }> {
     try {
-      const res = await api.get("/categories/count");
+      const res = await api.get("/categories/stats");
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success")
-        return { error: resData.message, count: 0 };
+        return { error: resData.message, stats: null };
 
-      return { error: null, count: resData.data.count as number };
+      return { error: null, stats: resData.data as CategoryStats };
     } catch (error) {
       console.log(error);
       const err = error as AxiosError;
       const errData = err.response?.data as ErrorResponse;
       return {
         error: errData.message || "Couldn't get brands count!",
-        count: null,
+        stats: null,
       };
     }
   }

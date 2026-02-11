@@ -6,12 +6,17 @@ import {
   Pencil,
   Trash2,
   Loader2,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import { Badge } from "@/src/components/ui/badge";
-import { useProductsStore } from "@/src/store/products.store";
+import {
+  useProductQueryStore,
+  useProductsStore,
+} from "@/src/store/products.store";
 import ProductsTableSkeleton from "./ProductsTableSkeleton";
 import { Button } from "@/src/components/ui/button";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAlertStore } from "@/src/store/alert.store";
 import { CategoryServices } from "@/src/services/category.services";
 import { toast } from "sonner";
@@ -41,13 +46,41 @@ export default function ProductsTable({
     isLoading,
     removeProduct,
     getProduct,
+    productStats,
+    fetchProducts,
+    cursor,
+    hasMore,
   } = useProductsStore();
+  const { query } = useProductQueryStore();
   const { show: showAlert } = useAlertStore();
 
   const [deletingProductId, setDeletingProductId] = useState<string>("");
   const [variantSidePanelOpen, setVariantSidePanelOpen] = useState<string>("");
   const [createVariantPanelOpen, setCreateVariantPanelOpen] =
     useState<string>("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+
+  const productsList = useMemo(() => {
+    return Array.from(productsMap.values());
+  }, [productsMap]);
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return productsList.slice(startIndex, startIndex + pageSize);
+  }, [productsList, currentPage]);
+
+  const totalPages = Math.ceil(
+    productStats ? productStats.products_count / pageSize : 1,
+  );
+
+  const fetchPaginatedProducts = async () => {
+    if (currentPage * pageSize <= productsMap.size) return;
+    if (!hasMore) return;
+    if (!cursor) return;
+    fetchProducts({ ...query, cursor });
+  };
 
   const deleteCategory = async (id: string) => {
     try {
@@ -66,12 +99,21 @@ export default function ProductsTable({
   const onDelete = (id: string) => {
     showAlert({
       title: "Delete Product",
-      message: `Deleting this product will also delete its ${getProduct(id)?._count.variants} variants & related ${getProduct(id)?._count.storeProducts} store products. Are you sure you want to delete this product?`,
+      message: `Deleting this product will also delete its ${getProduct(id)?.variants_count || 0} variants & related ${getProduct(id)?.store_products_count || 0} store products. Are you sure you want to delete this product?`,
       onConfirm: () => {
         deleteCategory(id);
       },
     });
   };
+
+  useEffect(() => {
+    fetchPaginatedProducts();
+  }, [currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query]);
+
   if (isLoading) return <ProductsTableSkeleton />;
 
   return (
@@ -102,7 +144,7 @@ export default function ProductsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {Array.from(productsMap.values()).map((p) => (
+            {paginatedProducts.map((p) => (
               <tr
                 key={p.id}
                 className="group h-[64px] hover:bg-gray-50/80 transition-colors"
@@ -136,8 +178,11 @@ export default function ProductsTable({
 
                 {/* 2. Category Path */}
                 <td className="px-4 text-[13px] text-gray-600">
-                  <span className="line-clamp-1" title={p.category.name}>
-                    {p.category.name}
+                  <span
+                    className="line-clamp-1"
+                    title={p.category?.name || "-"}
+                  >
+                    {p.category?.name || "-"}
                   </span>
                 </td>
 
@@ -152,7 +197,7 @@ export default function ProductsTable({
                     onClick={() => setVariantSidePanelOpen(p.id)}
                     className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
                   >
-                    {p._count.variants || 0}
+                    {p.variants_count || 0}
                     <ArrowRight
                       size={14}
                       className="opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all"
@@ -166,7 +211,7 @@ export default function ProductsTable({
                     // onClick={() => onViewProducts(p.id)}
                     className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer "
                   >
-                    {p._count.storeProducts || 0}
+                    {p.store_products_count || 0}
                     <ArrowRight
                       size={14}
                       className="opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all"
@@ -235,6 +280,61 @@ export default function ProductsTable({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* COMPONENT 8: Pagination Controls */}
+      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50/50">
+        <div className="text-[13px] text-gray-500 space-x-2"></div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronLeft size={16} />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {[...Array(Math.ceil(productsList.length / pageSize))].map(
+              (_, i) => {
+                const pageNum = i + 1;
+                // Simple logic to only show few page numbers if there are many
+                if (totalPages > 5 && Math.abs(pageNum - currentPage) > 2)
+                  return null;
+
+                return (
+                  <Button
+                    type="button"
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "ghost"}
+                    size="sm"
+                    className={`h-8 w-8 p-0 text-[13px] ${currentPage === pageNum ? "bg-primary hover:bg-primary/95" : ""}`}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              },
+            )}
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+            }}
+            disabled={!hasMore}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight size={16} />
+          </Button>
+        </div>
       </div>
     </div>
   );
