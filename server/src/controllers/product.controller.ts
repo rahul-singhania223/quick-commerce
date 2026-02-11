@@ -20,7 +20,7 @@ import {
   getCategory as fetchCategory,
   updateCategory,
 } from "../models/category.model.js";
-import { getBrand as fetchBrand } from "../models/brand.model.js";
+import { getBrand as fetchBrand, updateBrand } from "../models/brand.model.js";
 import {
   decreaseProductCount,
   fetchProductStats,
@@ -170,8 +170,9 @@ export const createProduct = asyncHandler(
     });
 
     // create new product
-    const [newProduct, updatedCategory, updatedStats] = await Promise.all([
+    const [newProduct, updatedBrand, updatedCategory, updatedStats] = await Promise.all([
       createDbProduct(newProductData),
+      existingBrand && updateBrand(existingBrand.id, { products_count: 1 }),
       updateCategory(existingCategory.id, {
         products_count: existingCategory.products_count
           ? existingCategory.products_count + 1
@@ -182,12 +183,15 @@ export const createProduct = asyncHandler(
 
     if (!newProduct)
       return next(new ApiError(400, "DB_ERROR", "Couldn't create product!"));
+    
+    if(existingBrand && !updatedBrand) return next(new ApiError(500, "DB_ERROR", "Couldn't update brand!"));
 
     if (!updatedCategory)
       return next(new ApiError(500, "DB_ERROR", "Couldn't update category!"));
 
     if (!updatedStats)
       return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
+
 
     // return response
     return res
