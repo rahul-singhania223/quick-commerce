@@ -177,10 +177,10 @@ export const createStoreProduct = asyncHandler(
       );
 
     // create store product
-    const newStoreProductData: StoreProduct = {
+    const newStoreProductData: Prisma.StoreProductCreateInput = {
       id: v4(),
-      variant_id: storeProduct.variant_id,
-      store_id: store.id,
+      variant: { connect: { id: storeProduct.variant_id } },
+      store: { connect: { id: store.id } },
       selling_price: new Prisma.Decimal(storeProduct.selling_price),
       discount_percent: new Prisma.Decimal(storeProduct.discount_percent),
       is_listed: storeProduct.is_listed,

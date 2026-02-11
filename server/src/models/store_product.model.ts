@@ -59,7 +59,7 @@ export const getStoreProduct = async (id: string) => {
 };
 
 // create store product
-export const createStoreProduct = async (data: StoreProduct) => {
+export const createStoreProduct = async (data: Prisma.StoreProductCreateInput) => {
   try {
     const storeProduct = await db.storeProduct.create({ data });
     return storeProduct;
