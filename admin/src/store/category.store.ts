@@ -42,6 +42,7 @@ interface CategoriesState {
   addCategory: (category: CategoryWithRelations) => void;
   getCategory: (categoryId: string) => CategoryWithRelations | undefined;
   removeCategory: (categoryId: string) => void;
+  updateCategory: (categoryId: string, data: Category) => void;
   clearCategories: () => void;
 }
 
@@ -172,6 +173,14 @@ export const useCategoryStore = create<CategoriesState>((set, get) => ({
             }
           : null,
       };
+    });
+  },
+
+  updateCategory: (categoryId: string, data: Category) => {
+    set((state) => {
+      const next = new Map(state.categories);
+      next.set(categoryId, { ...next.get(categoryId), ...data });
+      return { categories: next };
     });
   },
 

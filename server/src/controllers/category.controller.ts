@@ -17,6 +17,7 @@ import {
   increaseCategoryCount,
   decreaseCategoryCount,
 } from "../models/category.model.js";
+import db from "../configs/db.config.js";
 
 // GET CATEGORIES COUNT
 export const getCategoryStats = asyncHandler(
@@ -99,17 +100,6 @@ export const createCategory = asyncHandler(
         new ApiError(400, "INVALID_DATA", "Invalid parent category ID!"),
       );
 
-    const [existingCategory, parentCategory] = await Promise.all([
-      fetchCategory({ name }),
-      parent_id ? fetchCategory({ id: parent_id || undefined }) : null,
-    ]);
-
-    if (existingCategory)
-      return next(new ApiError(400, "DB_ERROR", "Category already exists!"));
-
-    if (parent_id && !parentCategory)
-      return next(new ApiError(404, "DB_ERROR", "Parent category not found!"));
-
     // @ts-ignore
     const slug = slugify.default(name, {
       replacement: "-",
@@ -118,38 +108,80 @@ export const createCategory = asyncHandler(
       strict: true,
     });
 
-    // create new category
     const newCategoryData: Prisma.CategoryCreateInput = {
-      id: v4(),
       name,
       slug,
-      parent: { connect: { id: parent_id || undefined } },
       level: 1,
       sort_order: 1,
       is_active,
     };
 
-    if (parent_id && parentCategory) {
-      const level = parentCategory.level + 1;
-      if (level > 5)
-        return next(
-          new ApiError(400, "DB_ERROR", "This category can't have childrens!"),
-        );
+    let newCategory = null;
 
-      newCategoryData.level = level;
-      newCategoryData.sort_order = parentCategory.sort_order + 1;
+    try {
+      await db.$transaction(async (tx) => {
+        // check if category exists
+        const existingCategory = await tx.category.findUnique({
+          where: { slug },
+          select: { id: true },
+        });
+        if (existingCategory)
+          throw new ApiError(400, "DB_ERROR", "Category already exists!");
+
+        // check if parent category exists
+        if (parent_id) {
+          const parentCategory = await tx.category.findUnique({
+            where: { id: parent_id },
+            select: { id: true, level: true, sort_order: true },
+          });
+          if (!parentCategory)
+            throw new ApiError(404, "DB_ERROR", "Parent category not found!");
+
+          const level = parentCategory.level + 1;
+          if (level > 5)
+            return next(
+              new ApiError(
+                400,
+                "DB_ERROR",
+                "This parent category can't have childrens!",
+              ),
+            );
+
+          newCategoryData.level = level;
+          newCategoryData.sort_order = parentCategory.sort_order + 1;
+          newCategoryData.parent = { connect: { id: parentCategory.id } };
+        }
+
+        // create new category
+        newCategory = await tx.category.create({
+          data: newCategoryData,
+          select: {
+            id: true,
+            name: true,
+            is_active: true,
+            products_count: true,
+            brands_count: true,
+            level: true,
+            parent: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
+        // update stats
+        await tx.stats.update({
+          where: { id: "GLOBAL" },
+          data: { categories_count: { increment: 1 } },
+        });
+      });
+    } catch (error: any) {
+      if (error instanceof ApiError) return next(error);
+      console.log(error);
+      return next(new ApiError(500, "DB_ERROR", "Couldn't create category!"));
     }
-
-    const [newCategory, updatedStats] = await Promise.all([
-      createDbCategory(newCategoryData),
-      increaseCategoryCount(),
-    ]);
 
     if (!newCategory)
       return next(new ApiError(500, "DB_ERROR", "Couldn't create category!"));
-
-    if (!updatedStats)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
 
     // return response
     return res
@@ -184,20 +216,7 @@ export const updateCategory = asyncHandler(
         new ApiError(400, "INVALID_DATA", "Invalid parent category ID!"),
       );
 
-    const existingCategory = await fetchCategory({ id });
-    if (!existingCategory)
-      return next(new ApiError(404, "DB_ERROR", "Category not found!"));
-
-    const newName = name && name !== existingCategory.name;
-
-    const [existingCategoryWithNewName] = await Promise.all([
-      newName ? fetchCategory({ name }) : null,
-    ]);
-
-    if (newName) {
-      if (existingCategoryWithNewName)
-        return next(new ApiError(400, "DB_ERROR", "Category already exists!"));
-
+    if (name) {
       // @ts-ignore
       data.slug = slugify.default(name, {
         replacement: "-",
@@ -207,59 +226,97 @@ export const updateCategory = asyncHandler(
       });
     }
 
-    // check if category level is valid
-    if (data.level) {
-      if (data.level === 0) {
-        if (data.parent_id)
-          return next(
-            new ApiError(
+    let updatedCategory = null;
+
+    try {
+      await db.$transaction(async (tx) => {
+        // check if category exists
+        const existingCategory = await tx.category.findUnique({
+          where: { id },
+          select: { id: true, slug: true },
+        });
+        if (!existingCategory)
+          throw new ApiError(404, "DB_ERROR", "Category not found!");
+
+        // check name
+        if (name && data.slug !== existingCategory.slug) {
+          const existingCategoryWithNewName = await tx.category.findUnique({
+            where: { slug: data.slug },
+            select: { id: true },
+          });
+          if (existingCategoryWithNewName)
+            throw new ApiError(400, "DB_ERROR", "Category already exists!");
+        }
+
+        // parent validation
+        if (parent_id) {
+          if (parent_id === id) {
+            throw new ApiError(
               400,
-              "INVALID_DATA",
-              "Root categories must have no parent!",
-            ),
-          );
-        data.parent_id = null;
-      }
+              "DB_ERROR",
+              "This category can't be a parent of itself!",
+            );
+          }
 
-      if (data.level > 0 && !data.parent_id)
-        return next(
-          new ApiError(
-            400,
-            "INVALID_DATA",
-            "Subcategories must have a parent!",
-          ),
-        );
+          const parentCategory = await tx.category.findUnique({
+            where: { id: parent_id },
+            select: {
+              id: true,
+              parent_id: true,
+              level: true,
+              sort_order: true,
+            },
+          });
+          if (!parentCategory)
+            throw new ApiError(404, "DB_ERROR", "Parent category not found!");
 
-      if (data.parent_id) {
-        const parent = await fetchCategory({ id: data.parent_id });
-        if (!parent)
-          return next(new ApiError(404, "DB_ERROR", "Parent not found!"));
-
-        if (data.level !== parent.level + 1)
-          return next(
-            new ApiError(
+          if (parentCategory.parent_id === id)
+            throw new ApiError(
               400,
-              "INVALID_DATA",
-              "Category level must be parent level + 1",
-            ),
-          );
-      }
+              "DB_ERROR",
+              "This category can't be a parent of it's children!",
+            );
+
+          const level = parentCategory.level + 1;
+          if (level > 5)
+            return next(
+              new ApiError(
+                400,
+                "DB_ERROR",
+                "This parent category can't have childrens!",
+              ),
+            );
+
+          data.level = level;
+          data.sort_order = parentCategory.sort_order + 1;
+        }
+
+        // update category
+        updatedCategory = await tx.category.update({
+          where: { id },
+          data,
+          select: {
+            id: true,
+            name: true,
+            is_active: true,
+            products_count: true,
+            brands_count: true,
+            level: true,
+            parent: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
+        if (!updatedCategory)
+          throw new ApiError(500, "DB_ERROR", "Couldn't update category!");
+      });
+    } catch (error: any) {
+      if (error instanceof ApiError) return next(error);
+      console.log(error);
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update category!"));
     }
 
-    if (data.parent_id) {
-      const parent = await fetchCategory({ id: data.parent_id });
-      if (!parent)
-        return next(new ApiError(404, "DB_ERROR", "Parent not found!"));
-    }
-
-    const updatedCategoryData: Prisma.CategoryUpdateInput = {
-      ...data,
-    };
-
-    const updatedCategory = await updateDbCategory(
-      existingCategory.id,
-      updatedCategoryData,
-    );
     if (!updatedCategory)
       return next(new ApiError(500, "DB_ERROR", "Couldn't update category!"));
 
@@ -286,7 +343,7 @@ export const deleteCategory = asyncHandler(
 
     if (!existingCategory)
       return next(new ApiError(404, "DB_ERROR", "Category not found!"));
-    
+
     const [deletedCategory, updatedStats] = await Promise.all([
       deleteDbCategory(id),
       decreaseCategoryCount(),

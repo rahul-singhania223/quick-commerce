@@ -18,6 +18,7 @@ import {
   updateProduct,
 } from "../models/product.model.js";
 import slugify from "slugify";
+import db from "../configs/db.config.js";
 
 // GET ALL PRODUCT VARIANTS
 export const getAllProductVariants = asyncHandler(
@@ -85,28 +86,14 @@ export const createProductVariant = asyncHandler(
       trim: true,
     });
 
-    const [existingProduct, existingProductVariant] = await Promise.all([
-      fetchProduct({ id: data.product_id }),
-      fetchProductVariant({ slug: sku }),
-    ]);
-
-    // check if product exists
-    if (!existingProduct)
-      return next(new ApiError(400, "DB_ERROR", "Product not found!"));
-
-    // check if product variant exists
-    if (existingProductVariant)
-      return next(new ApiError(400, "DB_ERROR", "Product variant exists!"));
-
     const { product_id, name, mrp, unit, image, weight, is_active } = data;
 
+    // data validation
+    if (!product_id || !isValidUUID(product_id))
+      return next(new ApiError(400, "INVALID_DATA", "Invalid product ID!"));
+
     const newProductVariantData: Prisma.ProductVariantCreateInput = {
-      id: v4(),
-      product: {
-        connect: {
-          id: product_id,
-        },
-      },
+      product: {},
       name,
       slug: sku,
       mrp: new Prisma.Decimal(mrp),
@@ -116,20 +103,52 @@ export const createProductVariant = asyncHandler(
       is_active,
     };
 
-    const [productVariant, updatedProduct] = await Promise.all([
-      createDbProductVariant(newProductVariantData),
-      updateProduct(product_id, {
-        variants_count: {
-          increment: 1,
-        },
-      }),
-    ]);
+    let newProductVariant = null;
 
-    if (!productVariant)
+    try {
+      await db.$transaction(async (tx) => {
+        // check if product exists
+        const existingProduct = await tx.product.findUnique({
+          where: { id: data.product_id },
+          select: { id: true },
+        });
+        if (!existingProduct)
+          throw new ApiError(400, "DB_ERROR", "Product not found!");
+
+        newProductVariantData.product = { connect: { id: data.product_id } };
+
+        // check if product variant exists
+        const existingProductVariant = await tx.productVariant.findUnique({
+          where: { slug: sku, product_id: data.product_id },
+          select: { id: true },
+        });
+        if (existingProductVariant)
+          throw new ApiError(
+            400,
+            "DB_ERROR",
+            "Product variant already exists!",
+          );
+
+        // creae product variant
+        newProductVariant = await tx.productVariant.create({
+          data: newProductVariantData,
+        });
+
+        await tx.product.update({
+          where: { id: data.product_id },
+          data: { variants_count: { increment: 1 } },
+        });
+      });
+    } catch (error: any) {
+      if (error instanceof ApiError) return next(error);
+      console.log(error);
+      return next(
+        new ApiError(500, "DB_ERROR", "Couldn't create product variant!"),
+      );
+    }
+
+    if (!newProductVariant)
       return next(new ApiError(500, "DB_ERROR", "Couldn't create product!"));
-
-    if (!updatedProduct)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update product!"));
 
     return res
       .status(200)
@@ -137,7 +156,7 @@ export const createProductVariant = asyncHandler(
         new APIResponse(
           "success",
           "Product variant created successfully!",
-          productVariant,
+          newProductVariant,
         ),
       );
   },
@@ -230,28 +249,33 @@ export const deleteProductVariant = asyncHandler(
         new ApiError(400, "INVALID_DATA", "Invalid product variant ID!"),
       );
 
-    const existingProductVariant = await fetchProductVariant({
-      id,
-    });
-    if (!existingProductVariant)
-      return next(new ApiError(404, "DB_ERROR", "Product variant not found!"));
+    try {
+      await db.$transaction(async (tx) => {
+        // check if product variant exists
+        const existingProductVariant = await tx.productVariant.findUnique({
+          where: { id },
+          select: { id: true, product_id: true },
+        });
+        if (!existingProductVariant)
+          throw new ApiError(404, "DB_ERROR", "Product variant not found!");
 
-    const [deletedProductVariant, updatedProduct] = await Promise.all([
-      deleteDbProductVariant(existingProductVariant.id),
-      updateProduct(existingProductVariant.product_id, {
-        variants_count: {
-          decrement: 1,
-        },
-      }),
-    ]);
+        await tx.product.update({
+          where: { id: existingProductVariant.product_id },
+          data: { variants_count: { decrement: 1 } },
+        });
 
-    if (!deletedProductVariant)
+        // delete product variant
+        const deletedProductVariant = await tx.productVariant.delete({
+          where: { id },
+        });
+      });
+    } catch (error: any) {
+      if (error instanceof ApiError) return next(error);
+      console.log(error);
       return next(
         new ApiError(500, "DB_ERROR", "Couldn't delete product variant!"),
       );
-
-    if (!updatedProduct)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update product!"));
+    }
 
     return res
       .status(200)

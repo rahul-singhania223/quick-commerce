@@ -79,7 +79,7 @@ export default function ProductSidePanel({
 
   const brandsOptions = useMemo(() => Array.from(brands.values()), [brands]);
 
-  const { addProduct, getProduct } = useProductsStore();
+  const { addProduct, getProduct, updateProduct } = useProductsStore();
 
   const product: ProductWithRelations | undefined = getProduct(id ?? "");
 
@@ -132,7 +132,7 @@ export default function ProductSidePanel({
         if (res.error) return toast.error(res.error);
 
         if (res.data) {
-          addProduct(res.data);
+          updateProduct(res.data.id, res.data);
           toast.success("Product updated successfully!");
           return onClose();
         }

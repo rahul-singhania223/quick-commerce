@@ -36,6 +36,7 @@ interface BrandsState {
   addBrand: (brand: any) => void;
   getBrand: (brandId: string) => Brand | undefined;
   removeBrand: (brandId: string) => void;
+  updateBrand: (brandId: string, data: Brand) => void;
   clearBrands: () => void;
 }
 
@@ -161,6 +162,14 @@ export const useBrandsStore = create<BrandsState>((set, get) => ({
             }
           : null,
       };
+    });
+  },
+
+  updateBrand: (brandId: string, data: Brand) => {
+    set((state) => {
+      const next = new Map(state.brands);
+      next.set(brandId, data);
+      return { brands: next };
     });
   },
   clearBrands: () => {

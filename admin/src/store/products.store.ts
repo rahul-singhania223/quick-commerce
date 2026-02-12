@@ -37,6 +37,7 @@ interface ProductsState {
   fetchProducts: (query?: QueryParams) => void;
   addProduct: (product: ProductWithRelations) => void;
   getProduct: (productId: string) => ProductWithRelations | undefined;
+  updateProduct: (productId: string, data: Product) => void;
   removeProduct: (productId: string) => void;
 }
 
@@ -166,6 +167,14 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
             }
           : null,
       };
+    });
+  },
+
+  updateProduct: (productId: string, data: Product) => {
+    set((state) => {
+      const next = new Map(state.products);
+      next.set(productId, data);
+      return { products: next };
     });
   },
 }));

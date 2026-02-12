@@ -198,6 +198,7 @@ export const getProduct = async ({
         is_active: true,
         variants_count: true,
         category_id: true,
+        brand_id: true,
         category: {
           select: { products_count: true },
         },

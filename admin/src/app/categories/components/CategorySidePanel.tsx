@@ -40,7 +40,7 @@ export default function CategorySidePanel({
 }) {
   const isEdit = !!id;
 
-  const { addCategory, categories, getCategory, isLoading } =
+  const { addCategory, updateCategory, categories, getCategory, isLoading } =
     useCategoryStore();
 
   const categoryData = getCategory(id ?? "");
@@ -58,7 +58,7 @@ export default function CategorySidePanel({
     resolver: zodResolver(createCategoryFormSchema),
     defaultValues: {
       name: categoryData?.name ?? "",
-      parent_id: categoryData?.parent.id ?? null,
+      parent_id: categoryData?.parent?.id ?? null,
       is_active: categoryData?.is_active ?? true,
     },
   });
@@ -80,7 +80,8 @@ export default function CategorySidePanel({
         if (res.error) return toast.error(res.error);
 
         if (res.data) {
-          addCategory(res.data);
+          console.log(res.data)
+          updateCategory(res.data.id, res.data);
           toast.success("Category updated successfully!");
           return onClose();
         }

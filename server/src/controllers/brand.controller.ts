@@ -17,6 +17,7 @@ import {
   decreaseBrandCount,
 } from "../models/brand.model.js";
 import slugify from "slugify";
+import db from "../configs/db.config.js";
 
 // GET BRANDS STATS
 export const getBrandStats = asyncHandler(
@@ -89,10 +90,6 @@ export const createBrand = asyncHandler(
       strict: true,
     });
 
-    const existingBrand = await fetchBrand({ name });
-    if (existingBrand)
-      return next(new ApiError(400, "DB_ERROR", "Brand already exists!"));
-
     const newBrandData: Prisma.BrandCreateInput = {
       id: v4(),
       name,
@@ -101,16 +98,47 @@ export const createBrand = asyncHandler(
       is_active,
     };
 
-    const [newBrand, updatedStats] = await Promise.all([
-      createDbBrand(newBrandData),
-      increaseBrandCount(),
-    ]);
+    let newBrand = null;
+
+    try {
+      newBrand = await db.$transaction(async (tx) => {
+        // check duplicate
+        const existingBrand = await tx.brand.findUnique({
+          where: { name },
+          select: { id: true },
+        });
+        if (existingBrand)
+          throw new ApiError(400, "DB_ERROR", "Brand already exists!");
+
+        // create brand
+        const createdBrand = await tx.brand.create({
+          data: newBrandData,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            is_active: true,
+            products_count: true,
+          },
+        });
+
+        // update stats
+        await tx.stats.update({
+          where: { id: "GLOBAL" },
+          data: { brands_count: { increment: 1 } },
+        });
+
+        return createdBrand;
+      });
+    } catch (error: any) {
+      if (error instanceof ApiError) return next(error);
+      console.log(error);
+      return next(new ApiError(500, "DB_ERROR", "Couldn't create brand!"));
+    }
 
     if (!newBrand)
       return next(new ApiError(500, "DB_ERROR", "Couldn't create brand!"));
-
-    if (!updatedStats)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
 
     return res
       .status(200)
@@ -135,18 +163,7 @@ export const updateBrand = asyncHandler(
 
     const { name } = data;
 
-    const [existingBrand, existingBrandWithNewName] = await Promise.all([
-      fetchBrand({ id }),
-      name ? fetchBrand({ name }) : null,
-    ]);
-
-    if (!existingBrand)
-      return next(new ApiError(404, "DB_ERROR", "Brand not found!"));
-
-    if (name && name !== existingBrand.name) {
-      if (existingBrandWithNewName)
-        return next(new ApiError(400, "DB_ERROR", "Brand already exists!"));
-
+    if (data.name) {
       // @ts-ignore
       data.slug = slugify.default(name, {
         replacement: "-", // replace spaces with replacement character, defaults to `-`
@@ -156,14 +173,48 @@ export const updateBrand = asyncHandler(
       });
     }
 
-    const updatedBrandData: Prisma.BrandUpdateInput = {
-      ...data,
-    };
+    let updatedBrand = null;
 
-    const updatedBrand = await updateDbBrand(
-      existingBrand.id,
-      updatedBrandData,
-    );
+    try {
+      await db.$transaction(async (tx) => {
+        const existingBrand = await tx.brand.findUnique({
+          where: { id },
+          select: { id: true, name: true },
+        });
+        if (!existingBrand)
+          throw new ApiError(404, "DB_ERROR", "Brand not found!");
+
+        const existingBrandWithNewName = name
+          ? await tx.brand.findUnique({
+              where: { slug: data.slug },
+              select: { id: true },
+            })
+          : null;
+
+        if (name && name !== existingBrand.name) {
+          if (existingBrandWithNewName)
+            throw new ApiError(400, "DB_ERROR", "Brand already exists!");
+        }
+
+        updatedBrand = await tx.brand.update({
+          where: { id },
+          data,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            is_active: true,
+            products_count: true,
+          },
+        });
+      });
+    } catch (error: any) {
+      if (error instanceof ApiError) return next(error);
+      console.log(error);
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update brand!"));
+    }
+
     if (!updatedBrand)
       return next(new ApiError(500, "DB_ERROR", "Couldn't update brand!"));
 
@@ -182,21 +233,32 @@ export const deleteBrand = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid brand ID!"));
 
-    const existingBrand = await fetchBrand({ id });
+    try {
+      await db.$transaction(async (tx) => {
+        // check if brand exists
+        const existingBrand = await tx.brand.findUnique({
+          where: { id },
+          select: { id: true },
+        });
+        if (!existingBrand)
+          throw new ApiError(404, "DB_ERROR", "Brand not found!");
 
-    if (!existingBrand)
-      return next(new ApiError(404, "DB_ERROR", "Brand not found!"));
+        // delete brand
+        const deletedBrand = await tx.brand.delete({
+          where: { id },
+        });
 
-    const [deletedBrand, updatedStats] = await Promise.all([
-      deleteDbBrand(id),
-      decreaseBrandCount(),
-    ]);
-
-    if (!deletedBrand)
+        // update stats
+        await tx.stats.update({
+          where: { id: "GLOBAL" },
+          data: { brands_count: { decrement: 1 } },
+        });
+      });
+    } catch (error: any) {
+      if (error instanceof ApiError) return next(error);
+      console.log(error);
       return next(new ApiError(500, "DB_ERROR", "Couldn't delete brand!"));
-
-    if (!updatedStats)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
+    }
 
     return res
       .status(200)

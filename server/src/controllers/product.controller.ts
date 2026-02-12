@@ -26,6 +26,7 @@ import {
   fetchProductStats,
   increaseProductCount,
 } from "../models/product_stats.model.js";
+import db from "../configs/db.config.js";
 
 // GET PRODUCT STATS
 export const getProductStats = asyncHandler(
@@ -130,32 +131,13 @@ export const createProduct = asyncHandler(
     if (brand_id && !isValidUUID(brand_id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid brand ID!"));
 
-    const [existingCategory, existingBrand] = await Promise.all([
-      fetchCategory({ id: category_id }),
-      brand_id ? fetchBrand({ id: brand_id }) : null,
-    ]);
-
-    if (!existingCategory)
-      return next(new ApiError(400, "DB_ERROR", "Category not found!"));
-
-    // // check if brand exists
-    if (brand_id) {
-      if (!existingBrand)
-        return next(new ApiError(400, "DB_ERROR", "Brand not found!"));
-    }
-
     const newProductData: Prisma.ProductCreateInput = {
       id: v4(),
       name,
       image,
       description,
-      category: {
-        connect: { id: existingCategory.id },
-      },
-      brand:
-        brand_id && existingBrand
-          ? { connect: { id: existingBrand.id } }
-          : undefined,
+      category: {},
+      brand: undefined,
       is_active,
       slug: "",
     };
@@ -169,29 +151,90 @@ export const createProduct = asyncHandler(
       trim: true,
     });
 
-    // create new product
-    const [newProduct, updatedBrand, updatedCategory, updatedStats] = await Promise.all([
-      createDbProduct(newProductData),
-      existingBrand && updateBrand(existingBrand.id, { products_count: 1 }),
-      updateCategory(existingCategory.id, {
-        products_count: existingCategory.products_count
-          ? existingCategory.products_count + 1
-          : 1,
-      }),
-      increaseProductCount(),
-    ]);
+    let newProduct = null;
+
+    try {
+      await db.$transaction(async (tx) => {
+        // check if product exists
+        const existingProduct = await tx.product.findUnique({
+          where: { slug: newProductData.slug },
+          select: { id: true },
+        });
+        if (existingProduct)
+          throw new ApiError(400, "DB_ERROR", "Product already exists!");
+
+        // check if category exists
+        const existingCategory = await tx.category.findUnique({
+          where: { id: category_id },
+          select: { id: true },
+        });
+        if (!existingCategory)
+          throw new ApiError(400, "DB_ERROR", "Category not found!");
+
+        newProductData.category = { connect: { id: existingCategory.id } };
+
+        // check if brand exists
+        if (brand_id) {
+          const existingBrand = await tx.brand.findUnique({
+            where: { id: brand_id },
+            select: { id: true },
+          });
+          if (!existingBrand)
+            throw new ApiError(400, "DB_ERROR", "Brand not found!");
+
+          newProductData.brand = { connect: { id: existingBrand.id } };
+        }
+
+        // create product
+        newProduct = await tx.product.create({
+          data: newProductData,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            image: true,
+            is_active: true,
+            variants_count: true,
+            store_products_count: true,
+            brand: {
+              select: { name: true, id: true },
+            },
+            category: {
+              select: { name: true, id: true },
+            },
+          },
+        });
+
+        // increase products count (category)
+        await tx.category.update({
+          where: { id: existingCategory.id },
+          data: { products_count: { increment: 1 } },
+        });
+
+        if (brand_id) {
+          // increase products count (brand)
+          await tx.brand.update({
+            where: { id: brand_id },
+            data: { products_count: { increment: 1 } },
+          });
+        }
+
+        // stats update
+        await tx.stats.update({
+          where: { id: "GLOBAL" },
+          data: { products_count: { increment: 1 } },
+        });
+      });
+    } catch (error: any) {
+      if (error instanceof ApiError) {
+        return next(error);
+      }
+      console.log(error);
+      return next(new ApiError(500, "DB_ERROR", "Couldn't create product!"));
+    }
 
     if (!newProduct)
-      return next(new ApiError(400, "DB_ERROR", "Couldn't create product!"));
-    
-    if(existingBrand && !updatedBrand) return next(new ApiError(500, "DB_ERROR", "Couldn't update brand!"));
-
-    if (!updatedCategory)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update category!"));
-
-    if (!updatedStats)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
-
+      return next(new ApiError(500, "DB_ERROR", "Couldn't create product!"));
 
     // return response
     return res
@@ -223,37 +266,118 @@ export const updateProduct = asyncHandler(
     if (category_id && !isValidUUID(category_id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid category ID!"));
 
-    const [existingProduct, existingCategory, existingBrand] =
-      await Promise.all([
-        fetchProduct({ id }),
-        category_id ? fetchCategory({ id: category_id }) : null,
-        brand_id ? fetchBrand({ id: brand_id }) : null,
-      ]);
-
-    if (!existingProduct)
-      return next(new ApiError(404, "DB_ERROR", "Product not found!"));
-    if (category_id && !existingCategory)
-      return next(new ApiError(400, "DB_ERROR", "Category not found!"));
-    if (brand_id && !existingBrand)
-      return next(new ApiError(400, "DB_ERROR", "Brand not found!"));
-
-    // update slug
-    if (data.name && data.name !== existingProduct.name) {
-      // @ts-ignore
-      data.slug = slugify.default(data.name, {
-        replacement: "-",
-        remove: undefined,
-        lower: true,
-        strict: true,
-        trim: true,
-      });
-    }
+    // @ts-ignore
+    data.slug = slugify.default(data.name, {
+      replacement: "-",
+      remove: undefined,
+      lower: true,
+      strict: true,
+      trim: true,
+    });
 
     const updatedProductData: Prisma.ProductUpdateInput = {
-      ...data,
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      image: data.image,
+      is_active: data.is_active,
     };
 
-    const updatedProduct = await updateDbProduct(id, updatedProductData);
+    let updatedProduct = null;
+
+    try {
+      await db.$transaction(async (tx) => {
+        // check if product exists
+        const existingProduct = await tx.product.findUnique({
+          where: { id },
+          select: { id: true, category_id: true, brand_id: true, name: true },
+        });
+        if (!existingProduct)
+          throw new ApiError(404, "DB_ERROR", "Product not found!");
+
+        // name validation
+        if (data.name && data.name !== existingProduct.name) {
+          const existingProductWithName = await tx.product.findUnique({
+            where: { slug: data.slug },
+            select: { id: true },
+          });
+          if (existingProductWithName)
+            throw new ApiError(400, "DB_ERROR", "Product already exists!");
+        }
+
+        // category validation
+        if (category_id && category_id !== existingProduct.category_id) {
+          const existingCategory = await tx.category.findUnique({
+            where: { id: category_id },
+            select: { id: true },
+          });
+          if (!existingCategory)
+            throw new ApiError(400, "DB_ERROR", "Category not found!");
+
+          await tx.category.update({
+            where: { id: existingProduct.category_id },
+            data: { products_count: { decrement: 1 } },
+          });
+
+          await tx.category.update({
+            where: { id: category_id },
+            data: { products_count: { increment: 1 } },
+          });
+
+          updatedProductData.category = { connect: { id: category_id } };
+        }
+
+        // brand validation
+        if (brand_id && brand_id !== existingProduct.brand_id) {
+          const existingBrand = await tx.brand.findUnique({
+            where: { id: brand_id },
+            select: { id: true },
+          });
+          if (!existingBrand)
+            throw new ApiError(400, "DB_ERROR", "Brand not found!");
+
+          if (existingProduct.brand_id) {
+            await tx.brand.update({
+              where: { id: existingProduct.brand_id },
+              data: { products_count: { decrement: 1 } },
+            });
+          }
+
+          await tx.brand.update({
+            where: { id: brand_id },
+            data: { products_count: { increment: 1 } },
+          });
+
+          updatedProductData.brand = { connect: { id: brand_id } };
+        }
+
+        // update product
+        updatedProduct = await tx.product.update({
+          where: { id },
+          data: updatedProductData,
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            image: true,
+            is_active: true,
+            variants_count: true,
+            store_products_count: true,
+            brand: {
+              select: { name: true, id: true },
+            },
+            category: {
+              select: { name: true, id: true },
+            },
+          },
+        });
+      });
+    } catch (error) {
+      if (error instanceof ApiError) return next(error);
+      console.log(error);
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update product!"));
+    }
+
     if (!updatedProduct)
       return next(new ApiError(500, "DB_ERROR", "Couldn't update product!"));
 
@@ -276,26 +400,42 @@ export const deleteProduct = asyncHandler(
     if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid product ID!"));
 
-    const existingProduct = await fetchProduct({ id });
-    if (!existingProduct)
-      return next(new ApiError(404, "DB_ERROR", "Product not found!"));
+    try {
+      await db.$transaction(async (tx) => {
+        // check if product exists
+        const existingProduct = await tx.product.findUnique({
+          where: { id },
+          select: { id: true, category_id: true, brand_id: true },
+        });
+        if (!existingProduct)
+          throw new ApiError(404, "DB_ERROR", "Product not found!");
 
-    const [deletedProduct, updatedCategory, updatedStats] = await Promise.all([
-      deleteDbProduct(existingProduct.id),
-      updateCategory(existingProduct.category_id, {
-        products_count: existingProduct.category.products_count
-          ? existingProduct.category.products_count - 1
-          : 0,
-      }),
-      decreaseProductCount(),
-    ]);
+        // delete product
+        await tx.product.delete({ where: { id: existingProduct.id } });
 
-    if (!deletedProduct)
+        // update category
+        await tx.category.update({
+          where: { id: existingProduct.category_id },
+          data: { products_count: { decrement: 1 } },
+        });
+
+        // update brand
+        existingProduct.brand_id &&
+          (await tx.brand.update({
+            where: { id: existingProduct.brand_id },
+            data: { products_count: { decrement: 1 } },
+          }));
+
+        // update stats
+        await tx.stats.update({
+          where: { id: "GLOBAL" },
+          data: { products_count: { decrement: 1 } },
+        });
+      });
+    } catch (error: any) {
+      console.log(error);
       return next(new ApiError(500, "DB_ERROR", "Couldn't delete product!"));
-    if (!updatedCategory)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update category!"));
-    if (!updatedStats)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't update stats!"));
+    }
 
     return res
       .status(200)

@@ -52,7 +52,7 @@ export default function BrandModal({
 }: BrandModalProps) {
   const isEdit = !!brandId;
 
-  const { getBrand, addBrand } = useBrandsStore();
+  const { getBrand, addBrand, updateBrand } = useBrandsStore();
 
   const brandData = brandId ? getBrand(brandId) : null;
 
@@ -77,7 +77,8 @@ export default function BrandModal({
 
         if (res.error) return toast.error(res.error);
         if (res.data) {
-          addBrand(res.data);
+          updateBrand(res.data.id, res.data);
+
           toast.success("Brand updated successfully!");
           return onClose();
         }
