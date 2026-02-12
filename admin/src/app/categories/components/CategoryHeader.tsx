@@ -58,7 +58,7 @@ export default function CategoryHeader({
   const { fetchCategories } = useCategoryStore();
   const { query, setQuery, resetQuery } = useCategoryQueryStore();
 
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(query.search ?? "");
   const debouncedSearch = useDebounce(searchInput, 400);
 
   const router = useRouter();

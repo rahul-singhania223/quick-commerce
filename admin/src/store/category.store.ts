@@ -8,7 +8,8 @@ import {
 import { BrandsServices } from "../services/brands.services";
 import { CategoryServices } from "../services/category.services";
 
-let categoriesPromise: Promise<void> | null = null;
+let inflightCategoryRequests = new Map<string, Promise<void>>();
+let activeCategoryQueryKey: string | null = null;
 
 const buildQueryKey = (query?: QueryParams) =>
   JSON.stringify({
@@ -68,77 +69,86 @@ export const useCategoryStore = create<CategoriesState>((set, get) => ({
   currentQueryKey: "",
   initialized: false,
   fetchCategories: async (query) => {
-    if (categoriesPromise) return categoriesPromise;
+    const state = get();
+    const queryKey = buildQueryKey(query);
+    const isNewQuery = queryKey !== state.currentQueryKey;
 
-    categoriesPromise = (async () => {
+    // prevent duplicate calls for same query
+    if (inflightCategoryRequests.has(queryKey)) {
+      return inflightCategoryRequests.get(queryKey);
+    }
+
+    const promise = (async () => {
       try {
-        const state = get();
-        const queryKey = buildQueryKey(query);
+        activeCategoryQueryKey = queryKey;
 
-        // reset if query changed
-        const newQuery = queryKey !== state.currentQueryKey;
-        if (newQuery) {
+        // -------- RESET --------
+        if (isNewQuery) {
           set({
             categories: new Map(),
             categoryStats: null,
             loadingFailed: false,
-            isLoading: true,
             cursor: null,
-            hasMore: false,
+            hasMore: true,
             currentQueryKey: queryKey,
+            initialized: false,
           });
         }
 
-        // nothing left to fetch
-        if (!state.hasMore && !newQuery) return;
+        // read fresh state after reset
+        const fresh = get();
+
+        // stop useless pagination calls
+        if (!isNewQuery && !fresh.hasMore) return;
 
         set({ isLoading: true });
 
-        console.time("Fetch: ");
-        const [categories, categoryStats] = await Promise.all([
+        const [categoriesRes, statsRes] = await Promise.all([
           CategoryServices.getAllCategories({
             ...query,
-            cursor: newQuery ? undefined : state.cursor || undefined,
+            cursor: isNewQuery ? undefined : (fresh.cursor ?? undefined),
           }),
-          newQuery && CategoryServices.getCategoryStats(),
+          isNewQuery
+            ? CategoryServices.getCategoryStats()
+            : Promise.resolve(null),
         ]);
-        console.timeEnd("Fetch: ");
 
-        if (!categories) throw new Error("Failed to fetch categories");
-        if (newQuery && categoryStats && !categoryStats.stats)
-          throw new Error("Failed to fetch category stats");
+        // ignore stale response
+        if (activeCategoryQueryKey !== queryKey) return;
 
-        const categoriesWithKeys = categories.data.map(
-          (category) => [category.id, category] as const,
-        );
+        if (!categoriesRes?.data) throw new Error("Categories fetch failed");
 
         set((prev) => {
-          const map = new Map(prev.categories);
+          const map = isNewQuery ? new Map() : new Map(prev.categories);
 
-          for (const cat of categories.data) {
+          for (const cat of categoriesRes.data) {
             map.set(cat.id, cat);
           }
 
           return {
             categories: map,
-            nextCursor: categories.nextCursor,
-            hasMore: categories.hasMore,
-            isLoading: false,
-            categoryStats: categoryStats ? categoryStats.stats : null,
-
+            cursor: categoriesRes.nextCursor ?? null,
+            hasMore: categoriesRes.hasMore ?? false,
+            categoryStats: statsRes?.stats ?? prev.categoryStats ?? null,
             initialized: true,
+            loadingFailed: false,
           };
         });
-      } catch (error) {
-        set({ loadingFailed: true });
-        console.log("Fetch categories error: ", error);
+      } catch (err) {
+        if (activeCategoryQueryKey === queryKey) {
+          set({ loadingFailed: true });
+          console.error("fetchCategories error:", err);
+        }
       } finally {
-        set({ isLoading: false });
-        categoriesPromise = null;
+        if (activeCategoryQueryKey === queryKey) {
+          set({ isLoading: false });
+        }
+        inflightCategoryRequests.delete(queryKey);
       }
     })();
 
-    return categoriesPromise;
+    inflightCategoryRequests.set(queryKey, promise);
+    return promise;
   },
 
   addCategory: (category: CategoryWithRelations) => {

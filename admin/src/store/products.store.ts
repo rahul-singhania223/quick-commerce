@@ -2,7 +2,8 @@ import { create } from "zustand";
 import { Product, ProductStats, ProductWithRelations } from "../lib/types";
 import { ProductServices } from "../services/products.services";
 
-let productPromise: Promise<void> | null = null;
+let inflightRequests = new Map<string, Promise<void>>();
+let activeRequestKey: string | null = null;
 
 interface QueryParams {
   is_active?: "1" | "0";
@@ -64,75 +65,86 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
   cursor: null,
   hasMore: false,
   fetchProducts: async (query) => {
-    if (productPromise) return productPromise;
+    const state = get();
+    const queryKey = buildQueryKey(query);
+    const isNewQuery = queryKey !== state.currentQueryKey;
 
-    productPromise = (async () => {
+    // prevent duplicate same-page requests
+    if (inflightRequests.has(queryKey)) {
+      return inflightRequests.get(queryKey);
+    }
+
+    const promise = (async () => {
       try {
-        const state = get();
-        const queryKey = buildQueryKey(query);
+        activeRequestKey = queryKey;
 
-        // reset if query changed
-        const newQuery = queryKey !== state.currentQueryKey;
-
-        if (newQuery) {
+        // ---------- RESET ON FILTER CHANGE ----------
+        if (isNewQuery) {
           set({
             products: new Map(),
             productStats: null,
             loadingFailed: false,
-            isLoading: true,
             cursor: null,
-            hasMore: false,
+            hasMore: true,
             currentQueryKey: queryKey,
+            initialized: false,
           });
         }
 
-        // nothing left to fetch
-        if (!state.hasMore && !newQuery) return;
+        // read fresh state AFTER reset
+        const fresh = get();
+
+        // stop useless pagination calls
+        if (!isNewQuery && !fresh.hasMore) return;
 
         set({ isLoading: true });
 
-        const [products, productStats] = await Promise.all([
+        const [productsRes, statsRes] = await Promise.all([
           ProductServices.getAllProducts({
             ...query,
-            cursor: newQuery ? undefined : state.cursor || undefined,
+            cursor: isNewQuery ? undefined : (fresh.cursor ?? undefined),
           }),
-          ProductServices.getProductStats(),
+          isNewQuery
+            ? ProductServices.getProductStats()
+            : Promise.resolve(null),
         ]);
 
-        if (!products) throw new Error("Failed to fetch categories");
-        if (productStats && !productStats.stats)
-          throw new Error("Failed to fetch counts");
+        // -------- STALE RESPONSE PROTECTION --------
+        if (activeRequestKey !== queryKey) return;
 
-        const productsWithKeys = products.data.map(
-          (product) => [product.id, product] as const,
-        );
+        if (!productsRes?.data) throw new Error("Products fetch failed");
 
         set((prev) => {
-          const map = new Map(prev.products);
+          const map = isNewQuery ? new Map() : new Map(prev.products);
 
-          for (const p of products.data) {
+          for (const p of productsRes.data) {
             map.set(p.id, p);
           }
 
           return {
             products: map,
-            cursor: products.nextCursor,
-            hasMore: products.hasMore,
-            isLoading: false,
-            productStats: (productStats && productStats?.stats) || null,
+            cursor: productsRes.nextCursor ?? null,
+            hasMore: productsRes.hasMore ?? false,
+            productStats: statsRes?.stats ?? prev.productStats ?? null,
             initialized: true,
+            loadingFailed: false,
           };
         });
-      } catch (error) {
-        set({ loadingFailed: true });
-        console.log("Fetch categories error: ", error);
+      } catch (err) {
+        if (activeRequestKey === queryKey) {
+          set({ loadingFailed: true });
+          console.error("fetchProducts error:", err);
+        }
       } finally {
-        set({ isLoading: false });
-        productPromise = null;
+        if (activeRequestKey === queryKey) {
+          set({ isLoading: false });
+        }
+        inflightRequests.delete(queryKey);
       }
     })();
 
-    return productPromise;
+    inflightRequests.set(queryKey, promise);
+    return promise;
   },
 
   addProduct: (product: ProductWithRelations) => {

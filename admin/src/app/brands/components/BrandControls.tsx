@@ -22,7 +22,7 @@ export default function BrandControls() {
     search: undefined as string | undefined,
   });
 
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(query.search ?? "");
 
   const debouncedSearch = useDebounce(searchInput, 400);
 

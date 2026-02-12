@@ -22,17 +22,12 @@ export default function ProductsPage() {
   const { productStats, loadingFailed, initialized, fetchProducts } =
     useProductsStore();
 
-  const { query } = useProductQueryStore();
-
   useEffect(() => {
     if (initialized) return;
+    console.log("home hit");
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    if (!initialized) return;
-    fetchProducts(query);
-  }, [query]);
 
   return (
     <div className="flex h-screen flex-col bg-white overflow-hidden">

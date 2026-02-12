@@ -12,6 +12,7 @@ import { useSearchParams } from "next/navigation";
 import { useCategoryStore } from "@/src/store/category.store";
 import { useDebounce } from "@/src/hooks/useDebounce";
 import { useBrandsStore } from "@/src/store/brands.store";
+import { validate as isValidUUID } from "uuid";
 
 export default function ProductFilters() {
   const { fetchProducts, initialized } = useProductsStore();
@@ -20,9 +21,15 @@ export default function ProductFilters() {
     categories,
     isLoading: isCategoryLoading,
     fetchCategories,
+    getCategory,
   } = useCategoryStore();
 
-  const { brands, isLoading: isBrandLoading, fetchBrands } = useBrandsStore();
+  const {
+    brands,
+    isLoading: isBrandLoading,
+    fetchBrands,
+    getBrand,
+  } = useBrandsStore();
 
   const categoriesOptions = useMemo(
     () =>
@@ -42,10 +49,20 @@ export default function ProductFilters() {
     [brands],
   );
 
-  const [searchInput, setSearchInput] = useState("");
-  const [filterOptions, setFilterOptions] = useState({
-    category: undefined as { label: string; value: string } | undefined,
-    brand: undefined as { label: string; value: string } | undefined,
+  const activeFilterCategory = getCategory(query.category_id ?? "");
+  const activeFilterBrand = getBrand(query.brand_id ?? "");
+
+  const [searchInput, setSearchInput] = useState(query.search || "");
+  const [filterOptions, setFilterOptions] = useState<{
+    category: { label: string; value: string } | undefined;
+    brand: { label: string; value: string } | undefined;
+  }>({
+    category: activeFilterCategory
+      ? { label: activeFilterCategory.name, value: activeFilterCategory.id }
+      : undefined,
+    brand: activeFilterBrand
+      ? { label: activeFilterBrand.name, value: activeFilterBrand.id }
+      : undefined,
   });
 
   const debouncedSearch = useDebounce(searchInput, 200);
@@ -62,7 +79,6 @@ export default function ProductFilters() {
   }, [filterOptions]);
 
   useEffect(() => {
-    if (!initialized) return;
     const trimmed = debouncedSearch.trim();
 
     setQuery({
@@ -72,6 +88,10 @@ export default function ProductFilters() {
       cursor: undefined,
     });
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    fetchProducts(query);
+  }, [query]);
 
   return (
     <div className="flex h-[56px] w-full items-center gap-4 border-b border-gray-200 bg-[#F9FAFB] px-4">
