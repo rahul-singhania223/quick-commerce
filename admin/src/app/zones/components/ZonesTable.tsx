@@ -14,7 +14,7 @@ export default function ZonesTable({
 }: ZonesTableProps) {
   const { zones: zonesMap, isLoading } = useZonesStore();
 
-  if(isLoading) return <ZonesTableSkeleton />
+  if (isLoading) return <ZonesTableSkeleton />;
 
   return (
     <div className="flex-1 border border-gray-200 rounded-xl bg-white overflow-hidden flex flex-col shadow-sm">
@@ -57,9 +57,9 @@ export default function ZonesTable({
                 </td>
                 <td className="px-4 text-[13px] text-gray-600">{zone.city}</td>
                 <td
-                  className={`px-4 text-center text-[13px] font-medium ${zone._count?.stores || 0 ? "text-red-600" : "text-gray-900"}`}
+                  className={`px-4 text-center text-[13px] font-medium ${zone.stores_count || 0 ? "text-red-600" : "text-gray-900"}`}
                 >
-                  {zone._count?.stores || 0}
+                  {zone.stores_count || 0}
                 </td>
                 <td className="px-4 text-center">
                   <span
@@ -77,7 +77,7 @@ export default function ZonesTable({
                   </span>
                 </td>
                 <td className="px-4 text-[13px] font-medium">
-                  {zone.stats[0]?.avgTime || "-"}
+                  {zone.avg_prep_time || "-"}
                 </td>
                 <td className="px-4 text-center">
                   <span className="h-2 w-2 rounded-full bg-green-500 inline-block mr-2" />
@@ -91,7 +91,7 @@ export default function ZonesTable({
                       e.stopPropagation();
                       onEdit(zone.id);
                     }}
-                    className="p-2 text-gray-400 hover:text-blue-600"
+                    className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer"
                   >
                     <Edit2 size={16} />
                   </button>

@@ -25,7 +25,7 @@ export const getUserById = async (id: string) => {
       where: { id },
       include: {
         _count: {
-          select: { addresses: true },
+          select: { Address: true },
         },
       },
     });

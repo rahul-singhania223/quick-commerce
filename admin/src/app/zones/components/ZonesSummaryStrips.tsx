@@ -47,40 +47,41 @@ function SummaryCard({
 }
 
 export default function ZonesSummaryStrip() {
-  const { isLoading, zonesCount, activeZonesCount, zonesWithoutStoresCount } =
-    useZonesStore();
+  const { isLoading, zoneStats } = useZonesStore();
 
   if (isLoading) return <ZoneStripsSkeleton />;
+
+  console.log(zoneStats);
 
   return (
     <div className="flex w-full gap-4 overflow-x-auto pb-2 no-scrollbar">
       <SummaryCard
         label="Total Zones"
-        value={zonesCount}
+        value={zoneStats?.zones_count.toString() || "-"}
         icon={<Map size={16} />}
       />
       <SummaryCard
         label="Active Zones"
-        value={activeZonesCount}
+        value={zoneStats?.active_zones_count?.toString() || "-"}
         icon={<Zap size={16} />}
       />
       <SummaryCard
         label="Zones with No Stores"
-        value={zonesWithoutStoresCount}
+        value={zoneStats?.no_stores_count?.toString() || "-"}
         color="red"
         icon={<Store size={16} />}
         onClick={() => console.log("Filtering: No Stores")}
       />
       <SummaryCard
         label="Zones with Low Riders"
-        value={14}
+        value={zoneStats?.low_riders_count?.toString() || "-"}
         color="amber"
         icon={<Bike size={16} />}
         onClick={() => console.log("Filtering: Low Riders")}
       />
       <SummaryCard
         label="Avg Delivery Time"
-        value="18.4 min"
+        value={zoneStats?.avg_delivery_time?.toString() || "-"}
         icon={<Timer size={16} />}
       />
     </div>

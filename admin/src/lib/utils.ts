@@ -50,7 +50,7 @@ export const uploadFile = async (
     return { public_url, path: res.data.path };
   } catch (error) {
     console.log(error);
-    return null
+    return null;
   }
 };
 
@@ -66,3 +66,29 @@ export const getFilePath = (url: string) => {
   const path = url.replace(storageLocation, "");
   return path;
 };
+
+type Polygon = [number, number][][];
+
+export function isSamePolygon(a: Polygon, b: Polygon): boolean {
+  if (a.length !== b.length) return false;
+
+  for (let r = 0; r < a.length; r++) {
+    const ringA = a[r];
+    const ringB = b[r];
+
+    if (ringA.length !== ringB.length) return false;
+
+    const sameForward = ringA.every(
+      ([lng, lat], i) => lng === ringB[i][0] && lat === ringB[i][1],
+    );
+
+    const sameReverse = ringA.every(([lng, lat], i) => {
+      const j = ringB.length - 1 - i;
+      return lng === ringB[j][0] && lat === ringB[j][1];
+    });
+
+    if (!sameForward && !sameReverse) return false;
+  }
+
+  return true;
+}

@@ -54,7 +54,7 @@ export const ModelName = {
   Stats: 'Stats',
   User: 'User',
   Zone: 'Zone',
-  ZoneStat: 'ZoneStat',
+  ZoneStats: 'ZoneStats',
   Store: 'Store',
   Product: 'Product',
   Category: 'Category',
@@ -62,7 +62,8 @@ export const ModelName = {
   ProductVariant: 'ProductVariant',
   StoreProduct: 'StoreProduct',
   Inventory: 'Inventory',
-  Address: 'Address'
+  Address: 'Address',
+  spatial_ref_sys: 'spatial_ref_sys'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -90,6 +91,7 @@ export const StatsScalarFieldEnum = {
   stores_count: 'stores_count',
   customers_count: 'customers_count',
   delivery_partners_count: 'delivery_partners_count',
+  zones_count: 'zones_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -114,8 +116,15 @@ export const ZoneScalarFieldEnum = {
   id: 'id',
   name: 'name',
   city: 'city',
-  boundary: 'boundary',
   is_active: 'is_active',
+  priority: 'priority',
+  base_fee: 'base_fee',
+  per_km_fee: 'per_km_fee',
+  avg_prep_time: 'avg_prep_time',
+  boundary: 'boundary',
+  stores_count: 'stores_count',
+  riders_count: 'riders_count',
+  orders_count: 'orders_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -123,19 +132,17 @@ export const ZoneScalarFieldEnum = {
 export type ZoneScalarFieldEnum = (typeof ZoneScalarFieldEnum)[keyof typeof ZoneScalarFieldEnum]
 
 
-export const ZoneStatScalarFieldEnum = {
+export const ZoneStatsScalarFieldEnum = {
   id: 'id',
-  zoneId: 'zoneId',
-  bucket: 'bucket',
-  avgTime: 'avgTime',
-  p90Time: 'p90Time',
-  sampleSize: 'sampleSize',
-  lastComputedAt: 'lastComputedAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  zones_count: 'zones_count',
+  active_zones_count: 'active_zones_count',
+  low_riders_count: 'low_riders_count',
+  no_stores_count: 'no_stores_count',
+  avg_delivery_time: 'avg_delivery_time',
+  updated_at: 'updated_at'
 } as const
 
-export type ZoneStatScalarFieldEnum = (typeof ZoneStatScalarFieldEnum)[keyof typeof ZoneStatScalarFieldEnum]
+export type ZoneStatsScalarFieldEnum = (typeof ZoneStatsScalarFieldEnum)[keyof typeof ZoneStatsScalarFieldEnum]
 
 
 export const StoreScalarFieldEnum = {
@@ -173,10 +180,10 @@ export const ProductScalarFieldEnum = {
   category_id: 'category_id',
   brand_id: 'brand_id',
   is_active: 'is_active',
-  variants_count: 'variants_count',
-  store_products_count: 'store_products_count',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  store_products_count: 'store_products_count',
+  variants_count: 'variants_count'
 } as const
 
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
@@ -190,10 +197,10 @@ export const CategoryScalarFieldEnum = {
   level: 'level',
   is_active: 'is_active',
   sort_order: 'sort_order',
-  products_count: 'products_count',
-  brands_count: 'brands_count',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  brands_count: 'brands_count',
+  products_count: 'products_count'
 } as const
 
 export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
@@ -205,9 +212,9 @@ export const BrandScalarFieldEnum = {
   slug: 'slug',
   logo: 'logo',
   is_active: 'is_active',
-  products_count: 'products_count',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  products_count: 'products_count'
 } as const
 
 export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof BrandScalarFieldEnum]
@@ -217,14 +224,14 @@ export const ProductVariantScalarFieldEnum = {
   id: 'id',
   product_id: 'product_id',
   name: 'name',
-  slug: 'slug',
   weight: 'weight',
   unit: 'unit',
   mrp: 'mrp',
   image: 'image',
   is_active: 'is_active',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  slug: 'slug'
 } as const
 
 export type ProductVariantScalarFieldEnum = (typeof ProductVariantScalarFieldEnum)[keyof typeof ProductVariantScalarFieldEnum]
@@ -280,6 +287,17 @@ export const AddressScalarFieldEnum = {
 } as const
 
 export type AddressScalarFieldEnum = (typeof AddressScalarFieldEnum)[keyof typeof AddressScalarFieldEnum]
+
+
+export const Spatial_ref_sysScalarFieldEnum = {
+  srid: 'srid',
+  auth_name: 'auth_name',
+  auth_srid: 'auth_srid',
+  srtext: 'srtext',
+  proj4text: 'proj4text'
+} as const
+
+export type Spatial_ref_sysScalarFieldEnum = (typeof Spatial_ref_sysScalarFieldEnum)[keyof typeof Spatial_ref_sysScalarFieldEnum]
 
 
 export const SortOrder = {

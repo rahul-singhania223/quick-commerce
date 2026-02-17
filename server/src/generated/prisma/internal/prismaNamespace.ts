@@ -387,7 +387,7 @@ export const ModelName = {
   Stats: 'Stats',
   User: 'User',
   Zone: 'Zone',
-  ZoneStat: 'ZoneStat',
+  ZoneStats: 'ZoneStats',
   Store: 'Store',
   Product: 'Product',
   Category: 'Category',
@@ -395,7 +395,8 @@ export const ModelName = {
   ProductVariant: 'ProductVariant',
   StoreProduct: 'StoreProduct',
   Inventory: 'Inventory',
-  Address: 'Address'
+  Address: 'Address',
+  spatial_ref_sys: 'spatial_ref_sys'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -411,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "stats" | "user" | "zone" | "zoneStat" | "store" | "product" | "category" | "brand" | "productVariant" | "storeProduct" | "inventory" | "address"
+    modelProps: "stats" | "user" | "zone" | "zoneStats" | "store" | "product" | "category" | "brand" | "productVariant" | "storeProduct" | "inventory" | "address" | "spatial_ref_sys"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -637,77 +638,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    ZoneStat: {
-      payload: Prisma.$ZoneStatPayload<ExtArgs>
-      fields: Prisma.ZoneStatFieldRefs
+    ZoneStats: {
+      payload: Prisma.$ZoneStatsPayload<ExtArgs>
+      fields: Prisma.ZoneStatsFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.ZoneStatFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload> | null
+          args: Prisma.ZoneStatsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.ZoneStatFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+          args: Prisma.ZoneStatsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>
         }
         findFirst: {
-          args: Prisma.ZoneStatFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload> | null
+          args: Prisma.ZoneStatsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.ZoneStatFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+          args: Prisma.ZoneStatsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>
         }
         findMany: {
-          args: Prisma.ZoneStatFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>[]
+          args: Prisma.ZoneStatsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>[]
         }
         create: {
-          args: Prisma.ZoneStatCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+          args: Prisma.ZoneStatsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>
         }
         createMany: {
-          args: Prisma.ZoneStatCreateManyArgs<ExtArgs>
+          args: Prisma.ZoneStatsCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.ZoneStatCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>[]
+          args: Prisma.ZoneStatsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>[]
         }
         delete: {
-          args: Prisma.ZoneStatDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+          args: Prisma.ZoneStatsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>
         }
         update: {
-          args: Prisma.ZoneStatUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+          args: Prisma.ZoneStatsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>
         }
         deleteMany: {
-          args: Prisma.ZoneStatDeleteManyArgs<ExtArgs>
+          args: Prisma.ZoneStatsDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.ZoneStatUpdateManyArgs<ExtArgs>
+          args: Prisma.ZoneStatsUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.ZoneStatUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>[]
+          args: Prisma.ZoneStatsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>[]
         }
         upsert: {
-          args: Prisma.ZoneStatUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatPayload>
+          args: Prisma.ZoneStatsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ZoneStatsPayload>
         }
         aggregate: {
-          args: Prisma.ZoneStatAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateZoneStat>
+          args: Prisma.ZoneStatsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateZoneStats>
         }
         groupBy: {
-          args: Prisma.ZoneStatGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ZoneStatGroupByOutputType>[]
+          args: Prisma.ZoneStatsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ZoneStatsGroupByOutputType>[]
         }
         count: {
-          args: Prisma.ZoneStatCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ZoneStatCountAggregateOutputType> | number
+          args: Prisma.ZoneStatsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ZoneStatsCountAggregateOutputType> | number
         }
       }
     }
@@ -1303,6 +1304,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    spatial_ref_sys: {
+      payload: Prisma.$spatial_ref_sysPayload<ExtArgs>
+      fields: Prisma.spatial_ref_sysFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.spatial_ref_sysFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.spatial_ref_sysFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>
+        }
+        findFirst: {
+          args: Prisma.spatial_ref_sysFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.spatial_ref_sysFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>
+        }
+        findMany: {
+          args: Prisma.spatial_ref_sysFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>[]
+        }
+        create: {
+          args: Prisma.spatial_ref_sysCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>
+        }
+        createMany: {
+          args: Prisma.spatial_ref_sysCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.spatial_ref_sysCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>[]
+        }
+        delete: {
+          args: Prisma.spatial_ref_sysDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>
+        }
+        update: {
+          args: Prisma.spatial_ref_sysUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>
+        }
+        deleteMany: {
+          args: Prisma.spatial_ref_sysDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.spatial_ref_sysUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.spatial_ref_sysUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>[]
+        }
+        upsert: {
+          args: Prisma.spatial_ref_sysUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$spatial_ref_sysPayload>
+        }
+        aggregate: {
+          args: Prisma.Spatial_ref_sysAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSpatial_ref_sys>
+        }
+        groupBy: {
+          args: Prisma.spatial_ref_sysGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Spatial_ref_sysGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.spatial_ref_sysCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Spatial_ref_sysCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1351,6 +1426,7 @@ export const StatsScalarFieldEnum = {
   stores_count: 'stores_count',
   customers_count: 'customers_count',
   delivery_partners_count: 'delivery_partners_count',
+  zones_count: 'zones_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1375,8 +1451,15 @@ export const ZoneScalarFieldEnum = {
   id: 'id',
   name: 'name',
   city: 'city',
-  boundary: 'boundary',
   is_active: 'is_active',
+  priority: 'priority',
+  base_fee: 'base_fee',
+  per_km_fee: 'per_km_fee',
+  avg_prep_time: 'avg_prep_time',
+  boundary: 'boundary',
+  stores_count: 'stores_count',
+  riders_count: 'riders_count',
+  orders_count: 'orders_count',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1384,19 +1467,17 @@ export const ZoneScalarFieldEnum = {
 export type ZoneScalarFieldEnum = (typeof ZoneScalarFieldEnum)[keyof typeof ZoneScalarFieldEnum]
 
 
-export const ZoneStatScalarFieldEnum = {
+export const ZoneStatsScalarFieldEnum = {
   id: 'id',
-  zoneId: 'zoneId',
-  bucket: 'bucket',
-  avgTime: 'avgTime',
-  p90Time: 'p90Time',
-  sampleSize: 'sampleSize',
-  lastComputedAt: 'lastComputedAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  zones_count: 'zones_count',
+  active_zones_count: 'active_zones_count',
+  low_riders_count: 'low_riders_count',
+  no_stores_count: 'no_stores_count',
+  avg_delivery_time: 'avg_delivery_time',
+  updated_at: 'updated_at'
 } as const
 
-export type ZoneStatScalarFieldEnum = (typeof ZoneStatScalarFieldEnum)[keyof typeof ZoneStatScalarFieldEnum]
+export type ZoneStatsScalarFieldEnum = (typeof ZoneStatsScalarFieldEnum)[keyof typeof ZoneStatsScalarFieldEnum]
 
 
 export const StoreScalarFieldEnum = {
@@ -1434,10 +1515,10 @@ export const ProductScalarFieldEnum = {
   category_id: 'category_id',
   brand_id: 'brand_id',
   is_active: 'is_active',
-  variants_count: 'variants_count',
-  store_products_count: 'store_products_count',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  store_products_count: 'store_products_count',
+  variants_count: 'variants_count'
 } as const
 
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
@@ -1451,10 +1532,10 @@ export const CategoryScalarFieldEnum = {
   level: 'level',
   is_active: 'is_active',
   sort_order: 'sort_order',
-  products_count: 'products_count',
-  brands_count: 'brands_count',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  brands_count: 'brands_count',
+  products_count: 'products_count'
 } as const
 
 export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
@@ -1466,9 +1547,9 @@ export const BrandScalarFieldEnum = {
   slug: 'slug',
   logo: 'logo',
   is_active: 'is_active',
-  products_count: 'products_count',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  products_count: 'products_count'
 } as const
 
 export type BrandScalarFieldEnum = (typeof BrandScalarFieldEnum)[keyof typeof BrandScalarFieldEnum]
@@ -1478,14 +1559,14 @@ export const ProductVariantScalarFieldEnum = {
   id: 'id',
   product_id: 'product_id',
   name: 'name',
-  slug: 'slug',
   weight: 'weight',
   unit: 'unit',
   mrp: 'mrp',
   image: 'image',
   is_active: 'is_active',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  slug: 'slug'
 } as const
 
 export type ProductVariantScalarFieldEnum = (typeof ProductVariantScalarFieldEnum)[keyof typeof ProductVariantScalarFieldEnum]
@@ -1541,6 +1622,17 @@ export const AddressScalarFieldEnum = {
 } as const
 
 export type AddressScalarFieldEnum = (typeof AddressScalarFieldEnum)[keyof typeof AddressScalarFieldEnum]
+
+
+export const Spatial_ref_sysScalarFieldEnum = {
+  srid: 'srid',
+  auth_name: 'auth_name',
+  auth_srid: 'auth_srid',
+  srtext: 'srtext',
+  proj4text: 'proj4text'
+} as const
+
+export type Spatial_ref_sysScalarFieldEnum = (typeof Spatial_ref_sysScalarFieldEnum)[keyof typeof Spatial_ref_sysScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1660,37 +1752,9 @@ export type ListEnumStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
 
 
 /**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
- * Reference to a field of type 'ZoneTimeBucket'
- */
-export type EnumZoneTimeBucketFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ZoneTimeBucket'>
-    
-
-
-/**
- * Reference to a field of type 'ZoneTimeBucket[]'
- */
-export type ListEnumZoneTimeBucketFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ZoneTimeBucket[]'>
     
 
 
@@ -1705,6 +1769,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1847,7 +1925,7 @@ export type GlobalOmitConfig = {
   stats?: Prisma.StatsOmit
   user?: Prisma.UserOmit
   zone?: Prisma.ZoneOmit
-  zoneStat?: Prisma.ZoneStatOmit
+  zoneStats?: Prisma.ZoneStatsOmit
   store?: Prisma.StoreOmit
   product?: Prisma.ProductOmit
   category?: Prisma.CategoryOmit
@@ -1856,6 +1934,7 @@ export type GlobalOmitConfig = {
   storeProduct?: Prisma.StoreProductOmit
   inventory?: Prisma.InventoryOmit
   address?: Prisma.AddressOmit
+  spatial_ref_sys?: Prisma.spatial_ref_sysOmit
 }
 
 /* Types for Logging */

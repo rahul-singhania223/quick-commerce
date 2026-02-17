@@ -16,81 +16,72 @@ model Stats {
   stores_count            Int      @default(0)
   customers_count         Int      @default(0)
   delivery_partners_count Int      @default(0)
+  zones_count             Int      @default(0)
   created_at              DateTime @default(now())
   updated_at              DateTime @updatedAt
 }
 
 model User {
-  id         String    @id @default(uuid())
+  id         String    @id @default(uuid()) @db.Uuid
   phone      String    @unique
   email      String?
   role       Role      @default(CUSTOMER)
   status     Status    @default(ACTIVE)
   created_at DateTime  @default(now())
   updated_at DateTime
+  Address    Address[]
   Stores     Store[]
-  addresses  Address[]
 }
 
 model Zone {
-  id   String @id @default(uuid())
-  name String @unique
-  city String
+  id String @id @default(uuid()) @db.Uuid
 
-  /// GeoJSON Polygon
-  /// Example:
-  /// {
-  ///   "type": "Polygon",
-  ///   "coordinates": [[[lng, lat], [lng, lat], ...]]
-  /// }
-  boundary Json
-
+  name      String
+  city      String
   is_active Boolean @default(true)
+
+  priority      Int?   @default(0)
+  base_fee      Float? @default(0)
+  per_km_fee    Float? @default(0)
+  avg_prep_time Int?   @default(10)
+
+  boundary      Json
+  boundary_geom Unsupported("geometry")?
+
+  stores_count Int? @default(0)
+  riders_count Int? @default(0)
+  orders_count Int? @default(0)
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  stores     Store[]
 
-  // Relations
-  stores Store[]
-  // orders Order[]
-  stats  ZoneStat[]
-
-  @@unique([name, city])
+  @@unique([name])
+  @@index([priority])
   @@index([city])
   @@index([is_active])
+  @@index([boundary_geom], map: "zone_boundary_gix", type: Gist)
 }
 
-model ZoneStat {
-  id String @id @default(uuid())
-
-  zoneId String
-  zone   Zone   @relation(fields: [zoneId], references: [id], onDelete: Cascade)
-
-  bucket ZoneTimeBucket
-
-  // minutes
-  avgTime    Float
-  p90Time    Float
-  sampleSize Int
-
-  lastComputedAt DateTime
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([zoneId, bucket])
-  @@index([zoneId])
+model ZoneStats {
+  id                 String   @id
+  zones_count        Int?     @default(0)
+  active_zones_count Int?     @default(0)
+  low_riders_count   Int?     @default(0)
+  no_stores_count    Int?     @default(0)
+  avg_delivery_time  Decimal? @default(0.0)
+  updated_at         DateTime @updatedAt
 }
 
 model Store {
-  id            String         @id @default(uuid())
-  user_id       String
+  id            String         @id @default(uuid()) @db.Uuid
+  user_id       String         @db.Uuid
   name          String
   logo          String
   owner_name    String
   phone         String
   address       String
-  zone_id       String
+  zone_id       String         @db.Uuid
   latitude      Decimal
   longitude     Decimal
   gst           String
@@ -103,34 +94,28 @@ model Store {
   status        Store_Status   @default(OPEN)
   created_at    DateTime       @default(now())
   updated_at    DateTime       @updatedAt
-  User          User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  Zone          Zone?          @relation(fields: [zone_id], references: [id])
+  User          User           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Zone          Zone           @relation(fields: [zone_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   storeProducts StoreProduct[]
 }
 
 model Product {
-  id String @id @default(uuid())
-
-  name        String
-  slug        String  @unique
-  description String?
-  image       String
-
-  category_id String
-  brand_id    String?
-
-  is_active Boolean @default(true)
-
-  variants_count       Int? @default(0)
-  store_products_count Int? @default(0)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  variants      ProductVariant[]
-  storeProducts StoreProduct[]
-  category      Category         @relation(fields: [category_id], references: [id], onDelete: Cascade)
-  brand         Brand?           @relation(fields: [brand_id], references: [id])
+  id                   String           @id @default(uuid()) @db.Uuid
+  name                 String
+  slug                 String           @unique
+  description          String?
+  image                String
+  category_id          String           @db.Uuid
+  brand_id             String?          @db.Uuid
+  is_active            Boolean          @default(true)
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
+  store_products_count Int?             @default(0)
+  variants_count       Int?             @default(0)
+  brand                Brand?           @relation(fields: [brand_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  category             Category         @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  variants             ProductVariant[]
+  StoreProduct         StoreProduct[]
 
   @@index([name])
   @@index([slug])
@@ -141,27 +126,20 @@ model Product {
 }
 
 model Category {
-  id String @id @default(uuid())
-
-  name String @unique
-  slug String @unique
-
-  parent_id String?
-  level     Int // 0 = root, 1 = child, 2 = sub-child
-
-  is_active  Boolean @default(true)
-  sort_order Int     @default(0)
-
-  products_count Int? @default(0)
-  brands_count   Int? @default(0)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  parent   Category?  @relation("CategoryTree", fields: [parent_id], references: [id], onDelete: Cascade)
-  children Category[] @relation("CategoryTree")
-
-  products Product[]
+  id             String     @id @default(uuid()) @db.Uuid
+  name           String     @unique
+  slug           String     @unique
+  parent_id      String?    @db.Uuid
+  level          Int
+  is_active      Boolean    @default(true)
+  sort_order     Int        @default(0)
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @updatedAt
+  brands_count   Int?       @default(0)
+  products_count Int?       @default(0)
+  parent         Category?  @relation("CategoryTree", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children       Category[] @relation("CategoryTree")
+  products       Product[]
 
   @@index([parent_id])
   @@index([slug])
@@ -170,21 +148,15 @@ model Category {
 }
 
 model Brand {
-  id String @id @default(uuid())
-
-  name String @unique
-  slug String @unique
-
-  logo String
-
-  is_active Boolean @default(true)
-
-  products_count Int? @default(0)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  products Product[]
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String    @unique
+  slug           String    @unique
+  logo           String
+  is_active      Boolean   @default(true)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  products_count Int?      @default(0)
+  products       Product[]
 
   @@index([slug])
   @@index([name])
@@ -192,98 +164,82 @@ model Brand {
 }
 
 model ProductVariant {
-  id String @id @default(uuid())
-
-  product_id String
-
-  name String // e.g. "1L", "500ml", "Pack of 6"
-  slug String @unique
-
-  weight Decimal?
-  unit   String? // g, kg, ml, l, pcs
-
-  mrp   Decimal // printed MRP
-  image String
-
-  is_active Boolean @default(true)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  product        Product        @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  id             String         @id @default(uuid()) @db.Uuid
+  product_id     String         @db.Uuid
+  name           String
+  weight         Decimal?
+  unit           String?
+  mrp            Decimal
+  image          String
+  is_active      Boolean        @default(true)
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  slug           String         @unique
+  product        Product        @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   store_products StoreProduct[]
 }
 
 model StoreProduct {
-  id String @id @default(uuid())
-
-  store_id   String
-  variant_id String
-
+  id               String         @id @default(uuid()) @db.Uuid
+  store_id         String         @db.Uuid
+  variant_id       String         @db.Uuid
   selling_price    Decimal
-  discount_percent Decimal? @default(0)
-
-  is_available Boolean @default(true)
-  is_listed    Boolean @default(true)
-
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
-  inventory  Inventory?
-
-  store     Store          @relation(fields: [store_id], references: [id], onDelete: Cascade)
-  variant   ProductVariant @relation(fields: [variant_id], references: [id])
-  product   Product?       @relation(fields: [productId], references: [id])
-  productId String?
+  discount_percent Decimal?       @default(0)
+  is_available     Boolean        @default(true)
+  is_listed        Boolean        @default(true)
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+  productId        String?        @db.Uuid
+  inventory        Inventory?
+  Product          Product?       @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  store            Store          @relation(fields: [store_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  variant          ProductVariant @relation(fields: [variant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([store_id, variant_id])
 }
 
 model Inventory {
-  id String @id @default(uuid())
-
-  store_product_id String @unique
-
+  id                String       @id @default(uuid()) @db.Uuid
+  store_product_id  String       @unique @db.Uuid
   stock_quantity    Int
-  reserved_quantity Int @default(0)
-
-  low_stock_alert Int @default(5)
-
-  updated_at DateTime @updatedAt
-  created_at DateTime @default(now())
-
-  store_product StoreProduct @relation(fields: [store_product_id], references: [id], onDelete: Cascade)
+  reserved_quantity Int          @default(0)
+  low_stock_alert   Int          @default(5)
+  updated_at        DateTime     @updatedAt
+  created_at        DateTime     @default(now())
+  store_product     StoreProduct @relation(fields: [store_product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model Address {
-  id String @id @default(cuid())
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  label AddressLabel @default(HOME)
-
-  name  String
-  phone String
-
+  id           String       @id @default(uuid()) @db.Uuid
+  userId       String       @db.Uuid
+  label        AddressLabel @default(HOME)
+  name         String
+  phone        String
   addressLine1 String
   addressLine2 String?
   landmark     String?
+  city         String
+  state        String
+  country      String       @default("India")
+  pincode      String
+  latitude     Float
+  longitude    Float
+  isDefault    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  User         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  city    String
-  state   String
-  country String @default("India")
-  pincode String
-
-  latitude  Float
-  longitude Float
-
-  isDefault Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
   @@index([latitude, longitude])
+  @@index([userId])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
 }
 
 enum AddressLabel {

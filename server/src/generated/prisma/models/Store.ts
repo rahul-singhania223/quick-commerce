@@ -320,14 +320,14 @@ export type StoreWhereInput = {
   AND?: Prisma.StoreWhereInput | Prisma.StoreWhereInput[]
   OR?: Prisma.StoreWhereInput[]
   NOT?: Prisma.StoreWhereInput | Prisma.StoreWhereInput[]
-  id?: Prisma.StringFilter<"Store"> | string
-  user_id?: Prisma.StringFilter<"Store"> | string
+  id?: Prisma.UuidFilter<"Store"> | string
+  user_id?: Prisma.UuidFilter<"Store"> | string
   name?: Prisma.StringFilter<"Store"> | string
   logo?: Prisma.StringFilter<"Store"> | string
   owner_name?: Prisma.StringFilter<"Store"> | string
   phone?: Prisma.StringFilter<"Store"> | string
   address?: Prisma.StringFilter<"Store"> | string
-  zone_id?: Prisma.StringFilter<"Store"> | string
+  zone_id?: Prisma.UuidFilter<"Store"> | string
   latitude?: Prisma.DecimalFilter<"Store"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFilter<"Store"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   gst?: Prisma.StringFilter<"Store"> | string
@@ -341,7 +341,7 @@ export type StoreWhereInput = {
   created_at?: Prisma.DateTimeFilter<"Store"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Store"> | Date | string
   User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  Zone?: Prisma.XOR<Prisma.ZoneNullableScalarRelationFilter, Prisma.ZoneWhereInput> | null
+  Zone?: Prisma.XOR<Prisma.ZoneScalarRelationFilter, Prisma.ZoneWhereInput>
   storeProducts?: Prisma.StoreProductListRelationFilter
 }
 
@@ -376,13 +376,13 @@ export type StoreWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.StoreWhereInput | Prisma.StoreWhereInput[]
   OR?: Prisma.StoreWhereInput[]
   NOT?: Prisma.StoreWhereInput | Prisma.StoreWhereInput[]
-  user_id?: Prisma.StringFilter<"Store"> | string
+  user_id?: Prisma.UuidFilter<"Store"> | string
   name?: Prisma.StringFilter<"Store"> | string
   logo?: Prisma.StringFilter<"Store"> | string
   owner_name?: Prisma.StringFilter<"Store"> | string
   phone?: Prisma.StringFilter<"Store"> | string
   address?: Prisma.StringFilter<"Store"> | string
-  zone_id?: Prisma.StringFilter<"Store"> | string
+  zone_id?: Prisma.UuidFilter<"Store"> | string
   latitude?: Prisma.DecimalFilter<"Store"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFilter<"Store"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   gst?: Prisma.StringFilter<"Store"> | string
@@ -396,7 +396,7 @@ export type StoreWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"Store"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Store"> | Date | string
   User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  Zone?: Prisma.XOR<Prisma.ZoneNullableScalarRelationFilter, Prisma.ZoneWhereInput> | null
+  Zone?: Prisma.XOR<Prisma.ZoneScalarRelationFilter, Prisma.ZoneWhereInput>
   storeProducts?: Prisma.StoreProductListRelationFilter
 }, "id">
 
@@ -432,14 +432,14 @@ export type StoreScalarWhereWithAggregatesInput = {
   AND?: Prisma.StoreScalarWhereWithAggregatesInput | Prisma.StoreScalarWhereWithAggregatesInput[]
   OR?: Prisma.StoreScalarWhereWithAggregatesInput[]
   NOT?: Prisma.StoreScalarWhereWithAggregatesInput | Prisma.StoreScalarWhereWithAggregatesInput[]
-  id?: Prisma.StringWithAggregatesFilter<"Store"> | string
-  user_id?: Prisma.StringWithAggregatesFilter<"Store"> | string
+  id?: Prisma.UuidWithAggregatesFilter<"Store"> | string
+  user_id?: Prisma.UuidWithAggregatesFilter<"Store"> | string
   name?: Prisma.StringWithAggregatesFilter<"Store"> | string
   logo?: Prisma.StringWithAggregatesFilter<"Store"> | string
   owner_name?: Prisma.StringWithAggregatesFilter<"Store"> | string
   phone?: Prisma.StringWithAggregatesFilter<"Store"> | string
   address?: Prisma.StringWithAggregatesFilter<"Store"> | string
-  zone_id?: Prisma.StringWithAggregatesFilter<"Store"> | string
+  zone_id?: Prisma.UuidWithAggregatesFilter<"Store"> | string
   latitude?: Prisma.DecimalWithAggregatesFilter<"Store"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalWithAggregatesFilter<"Store"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   gst?: Prisma.StringWithAggregatesFilter<"Store"> | string
@@ -474,7 +474,7 @@ export type StoreCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   User: Prisma.UserCreateNestedOneWithoutStoresInput
-  Zone?: Prisma.ZoneCreateNestedOneWithoutStoresInput
+  Zone: Prisma.ZoneCreateNestedOneWithoutStoresInput
   storeProducts?: Prisma.StoreProductCreateNestedManyWithoutStoreInput
 }
 
@@ -522,7 +522,7 @@ export type StoreUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   User?: Prisma.UserUpdateOneRequiredWithoutStoresNestedInput
-  Zone?: Prisma.ZoneUpdateOneWithoutStoresNestedInput
+  Zone?: Prisma.ZoneUpdateOneRequiredWithoutStoresNestedInput
   storeProducts?: Prisma.StoreProductUpdateManyWithoutStoreNestedInput
 }
 
@@ -840,7 +840,7 @@ export type StoreCreateWithoutUserInput = {
   status?: $Enums.Store_Status
   created_at?: Date | string
   updated_at?: Date | string
-  Zone?: Prisma.ZoneCreateNestedOneWithoutStoresInput
+  Zone: Prisma.ZoneCreateNestedOneWithoutStoresInput
   storeProducts?: Prisma.StoreProductCreateNestedManyWithoutStoreInput
 }
 
@@ -897,14 +897,14 @@ export type StoreScalarWhereInput = {
   AND?: Prisma.StoreScalarWhereInput | Prisma.StoreScalarWhereInput[]
   OR?: Prisma.StoreScalarWhereInput[]
   NOT?: Prisma.StoreScalarWhereInput | Prisma.StoreScalarWhereInput[]
-  id?: Prisma.StringFilter<"Store"> | string
-  user_id?: Prisma.StringFilter<"Store"> | string
+  id?: Prisma.UuidFilter<"Store"> | string
+  user_id?: Prisma.UuidFilter<"Store"> | string
   name?: Prisma.StringFilter<"Store"> | string
   logo?: Prisma.StringFilter<"Store"> | string
   owner_name?: Prisma.StringFilter<"Store"> | string
   phone?: Prisma.StringFilter<"Store"> | string
   address?: Prisma.StringFilter<"Store"> | string
-  zone_id?: Prisma.StringFilter<"Store"> | string
+  zone_id?: Prisma.UuidFilter<"Store"> | string
   latitude?: Prisma.DecimalFilter<"Store"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFilter<"Store"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   gst?: Prisma.StringFilter<"Store"> | string
@@ -1011,7 +1011,7 @@ export type StoreCreateWithoutStoreProductsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   User: Prisma.UserCreateNestedOneWithoutStoresInput
-  Zone?: Prisma.ZoneCreateNestedOneWithoutStoresInput
+  Zone: Prisma.ZoneCreateNestedOneWithoutStoresInput
 }
 
 export type StoreUncheckedCreateWithoutStoreProductsInput = {
@@ -1073,7 +1073,7 @@ export type StoreUpdateWithoutStoreProductsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   User?: Prisma.UserUpdateOneRequiredWithoutStoresNestedInput
-  Zone?: Prisma.ZoneUpdateOneWithoutStoresNestedInput
+  Zone?: Prisma.ZoneUpdateOneRequiredWithoutStoresNestedInput
 }
 
 export type StoreUncheckedUpdateWithoutStoreProductsInput = {
@@ -1140,7 +1140,7 @@ export type StoreUpdateWithoutUserInput = {
   status?: Prisma.EnumStore_StatusFieldUpdateOperationsInput | $Enums.Store_Status
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Zone?: Prisma.ZoneUpdateOneWithoutStoresNestedInput
+  Zone?: Prisma.ZoneUpdateOneRequiredWithoutStoresNestedInput
   storeProducts?: Prisma.StoreProductUpdateManyWithoutStoreNestedInput
 }
 
@@ -1332,7 +1332,7 @@ export type StoreSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   created_at?: boolean
   updated_at?: boolean
   User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  Zone?: boolean | Prisma.Store$ZoneArgs<ExtArgs>
+  Zone?: boolean | Prisma.ZoneDefaultArgs<ExtArgs>
   storeProducts?: boolean | Prisma.Store$storeProductsArgs<ExtArgs>
   _count?: boolean | Prisma.StoreCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["store"]>
@@ -1359,7 +1359,7 @@ export type StoreSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   created_at?: boolean
   updated_at?: boolean
   User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  Zone?: boolean | Prisma.Store$ZoneArgs<ExtArgs>
+  Zone?: boolean | Prisma.ZoneDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["store"]>
 
 export type StoreSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1384,7 +1384,7 @@ export type StoreSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   created_at?: boolean
   updated_at?: boolean
   User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  Zone?: boolean | Prisma.Store$ZoneArgs<ExtArgs>
+  Zone?: boolean | Prisma.ZoneDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["store"]>
 
 export type StoreSelectScalar = {
@@ -1413,24 +1413,24 @@ export type StoreSelectScalar = {
 export type StoreOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "name" | "logo" | "owner_name" | "phone" | "address" | "zone_id" | "latitude" | "longitude" | "gst" | "fssai" | "adhaar" | "pan" | "inside_photo" | "front_photo" | "verified" | "status" | "created_at" | "updated_at", ExtArgs["result"]["store"]>
 export type StoreInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  Zone?: boolean | Prisma.Store$ZoneArgs<ExtArgs>
+  Zone?: boolean | Prisma.ZoneDefaultArgs<ExtArgs>
   storeProducts?: boolean | Prisma.Store$storeProductsArgs<ExtArgs>
   _count?: boolean | Prisma.StoreCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type StoreIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  Zone?: boolean | Prisma.Store$ZoneArgs<ExtArgs>
+  Zone?: boolean | Prisma.ZoneDefaultArgs<ExtArgs>
 }
 export type StoreIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  Zone?: boolean | Prisma.Store$ZoneArgs<ExtArgs>
+  Zone?: boolean | Prisma.ZoneDefaultArgs<ExtArgs>
 }
 
 export type $StorePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Store"
   objects: {
     User: Prisma.$UserPayload<ExtArgs>
-    Zone: Prisma.$ZonePayload<ExtArgs> | null
+    Zone: Prisma.$ZonePayload<ExtArgs>
     storeProducts: Prisma.$StoreProductPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1849,7 +1849,7 @@ readonly fields: StoreFieldRefs;
 export interface Prisma__StoreClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   User<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  Zone<T extends Prisma.Store$ZoneArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Store$ZoneArgs<ExtArgs>>): Prisma.Prisma__ZoneClient<runtime.Types.Result.GetResult<Prisma.$ZonePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  Zone<T extends Prisma.ZoneDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ZoneDefaultArgs<ExtArgs>>): Prisma.Prisma__ZoneClient<runtime.Types.Result.GetResult<Prisma.$ZonePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   storeProducts<T extends Prisma.Store$storeProductsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Store$storeProductsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StoreProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2293,25 +2293,6 @@ export type StoreDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Limit how many Stores to delete.
    */
   limit?: number
-}
-
-/**
- * Store.Zone
- */
-export type Store$ZoneArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Zone
-   */
-  select?: Prisma.ZoneSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Zone
-   */
-  omit?: Prisma.ZoneOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ZoneInclude<ExtArgs> | null
-  where?: Prisma.ZoneWhereInput
 }
 
 /**

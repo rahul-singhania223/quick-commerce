@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { minimum } from "zod/v4-mini";
 
 const EPS = 1e-6;
 const eq = (a: number, b: number) => Math.abs(a - b) < EPS;
@@ -87,11 +86,27 @@ export const createZoneSchema = z.object({
   boundary: GeoJSONPolygonSchema,
 
   // Optional fields with defaults (aligning with Prisma @default)
-  is_active: z.boolean().default(true),
-  priority: z.number().int().min(0).max(10000).default(0),
-  base_fee: z.number().min(0).max(10000).default(0),
-  per_km_fee: z.number().min(0).default(0),
-  avg_prep_time: z.number().int().min(0).default(10),
+  is_active: z.boolean(),
+  priority: z
+    .number()
+    .int()
+    .min(0)
+    .max(10000, { message: "Priority must be between 0 and 10000" }),
+  base_fee: z
+    .number()
+    .min(0, { message: "Base fee must be between 0 and 10000" })
+    .max(10000, { message: "Base fee must be between 0 and 10000" }),
+  per_km_fee: z
+    .number()
+    .min(0, { message: "Per KM fee must be between 0 and 10000" })
+    .max(10000, { message: "Per KM fee must be between 0 and 10000" }),
+  avg_prep_time: z
+    .number()
+    .int()
+    .min(0, { message: "Average preparation time must be between 0 and 10000" })
+    .max(10000, {
+      message: "Average preparation time must be between 0 and 10000",
+    }),
 });
 
 // Type inference

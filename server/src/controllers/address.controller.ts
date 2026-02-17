@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../utils/async-handler.js";
-import {
-  CreateAddressSchema,
-} from "../schemas/address.schema.js";
+import { CreateAddressSchema } from "../schemas/address.schema.js";
 import { ApiError } from "../utils/api-error.js";
 import db from "../configs/db.config.js";
 import {
@@ -64,7 +62,7 @@ export const createAddress = asyncHandler(
 
     // Create address
     const address = await createDbAddress({
-      user: { connect: { id: userId } },
+      User: { connect: { id: userId } },
       ...addressData,
     });
 
@@ -137,7 +135,6 @@ export const getAllAddressesByUser = asyncHandler(
       );
   },
 );
-
 
 //  GET ADDRESS BY ID
 export const getAddressById = asyncHandler(

@@ -55,10 +55,10 @@ export type User = Prisma.UserModel
  */
 export type Zone = Prisma.ZoneModel
 /**
- * Model ZoneStat
+ * Model ZoneStats
  * 
  */
-export type ZoneStat = Prisma.ZoneStatModel
+export type ZoneStats = Prisma.ZoneStatsModel
 /**
  * Model Store
  * 
@@ -99,3 +99,8 @@ export type Inventory = Prisma.InventoryModel
  * 
  */
 export type Address = Prisma.AddressModel
+/**
+ * Model spatial_ref_sys
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type spatial_ref_sys = Prisma.spatial_ref_sysModel

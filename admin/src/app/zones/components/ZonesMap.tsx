@@ -9,8 +9,6 @@ interface Props {
 }
 
 export default function ZonesMap({ selectedId }: Props) {
-  // if (true) return <ZoneMapSkeleton />;
-
   const { getZone } = useZonesStore();
 
   const [zoneData, setZoneData] = useState<Zone | null>(null);
@@ -24,11 +22,12 @@ export default function ZonesMap({ selectedId }: Props) {
     }
   }, [selectedId]);
 
+
   if (zoneData)
     return (
       <PolygonMap
         coordinates={zoneData.boundary.coordinates[0]}
-        defaultZoom={15}
+        defaultZoom={12}
       />
     );
 

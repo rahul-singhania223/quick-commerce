@@ -233,8 +233,8 @@ export type InventoryWhereInput = {
   AND?: Prisma.InventoryWhereInput | Prisma.InventoryWhereInput[]
   OR?: Prisma.InventoryWhereInput[]
   NOT?: Prisma.InventoryWhereInput | Prisma.InventoryWhereInput[]
-  id?: Prisma.StringFilter<"Inventory"> | string
-  store_product_id?: Prisma.StringFilter<"Inventory"> | string
+  id?: Prisma.UuidFilter<"Inventory"> | string
+  store_product_id?: Prisma.UuidFilter<"Inventory"> | string
   stock_quantity?: Prisma.IntFilter<"Inventory"> | number
   reserved_quantity?: Prisma.IntFilter<"Inventory"> | number
   low_stock_alert?: Prisma.IntFilter<"Inventory"> | number
@@ -287,8 +287,8 @@ export type InventoryScalarWhereWithAggregatesInput = {
   AND?: Prisma.InventoryScalarWhereWithAggregatesInput | Prisma.InventoryScalarWhereWithAggregatesInput[]
   OR?: Prisma.InventoryScalarWhereWithAggregatesInput[]
   NOT?: Prisma.InventoryScalarWhereWithAggregatesInput | Prisma.InventoryScalarWhereWithAggregatesInput[]
-  id?: Prisma.StringWithAggregatesFilter<"Inventory"> | string
-  store_product_id?: Prisma.StringWithAggregatesFilter<"Inventory"> | string
+  id?: Prisma.UuidWithAggregatesFilter<"Inventory"> | string
+  store_product_id?: Prisma.UuidWithAggregatesFilter<"Inventory"> | string
   stock_quantity?: Prisma.IntWithAggregatesFilter<"Inventory"> | number
   reserved_quantity?: Prisma.IntWithAggregatesFilter<"Inventory"> | number
   low_stock_alert?: Prisma.IntWithAggregatesFilter<"Inventory"> | number

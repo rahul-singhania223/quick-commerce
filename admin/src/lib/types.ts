@@ -13,6 +13,14 @@ export interface BrandStats {
   brands_count: number;
 }
 
+export interface ZoneStats {
+  zones_count: number;
+  active_zones_count?: number;
+  low_riders_count?: number;
+  no_stores_count?: number;
+  avg_delivery_time?: number;
+}
+
 export type ErrorResponse = {
   errorCode: number;
   messageDetails: any;
@@ -232,31 +240,20 @@ export interface GeoJSONPolygon {
 
 export type ZoneTimeBucket = "ALL_DAY" | "PEAK" | "OFF_PEAK";
 
-export interface ZoneStat {
-  bucket: ZoneTimeBucket;
-  avgTime: number; // minutes
-  p90Time: number; // minutes
-  sampleSize: number;
-  lastComputedAt: string; // ISO string
-}
-
 export interface Zone {
-  id: string;
+  id: UUID;
   name: string;
   city: string;
-
   boundary: GeoJSONPolygon;
-
   is_active: boolean;
+  priority: number;
+  base_fee: number;
+  per_km_fee: number;
+  avg_prep_time: number;
 
-  stats: ZoneStat[];
-
-  createdAt: string;
-  updatedAt: string;
-
-  _count?: {
-    stores?: number;
-  };
+  stores_count?: number;
+  riders_count?: number;
+  orders_count?: number;
 }
 
 export interface ZoneWithRelations extends Zone {

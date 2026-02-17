@@ -7,7 +7,10 @@ import {
   SuccessResponse,
   UpdateBrandPayload,
   Zone,
+  ZoneStats,
 } from "../lib/types";
+import z from "zod";
+import { CreateZoneInput, createZoneSchema } from "../lib/schemas";
 
 export class ZonesServices {
   // ================================
@@ -16,22 +19,31 @@ export class ZonesServices {
 
   static async getAllZones(query?: {
     is_active?: "0" | "1";
-    name?: string;
     created_at?: string;
     search?: string;
     city?: string;
+    cursor?: string;
   }): Promise<Zone[] | null> {
     try {
       let url = "/zone/?";
 
-      if (query?.city) url += `city=${query.city}`;
-      if (query?.search) url += `&search=${query.search}`;
-      if (query?.is_active) url += `&is_active=${query.is_active}`;
-      if (query?.name) url += `&name=${query.name}`;
-      if (query?.created_at) url += `&created_at=${query.created_at}`;
+      if (query) {
+        const params = new URLSearchParams();
+
+        Object.entries(query).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            params.append(key, String(value));
+          }
+        });
+
+        const queryString = params.toString();
+        if (queryString) url += `?${queryString}`;
+      }
 
       const res = await api.get(url);
       const resData = res.data as SuccessResponse;
+
+      console.log(resData);
 
       if (resData.status !== "success") return null;
 
@@ -60,42 +72,43 @@ export class ZonesServices {
   }
 
   // ================================
-  // CREATE BRAND
+  // CREATE ZONE
   // ================================
-  static async createBrand(
-    data: CreateBrandPayload,
-  ): Promise<{ error: string | null; data: Brand | null }> {
+  static async createZone(
+    data: z.infer<typeof createZoneSchema>,
+  ): Promise<{ error: string | null; data: Zone | null }> {
     try {
-      const res = await api.post("/brands", data);
+      const res = await api.post("/zone", data);
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success")
         return { error: resData.message, data: null };
 
-      return { error: null, data: resData.data as Brand };
+      return { error: null, data: resData.data as Zone };
     } catch (error) {
       console.log(error);
       const err = error as AxiosError;
       const errData = err.response?.data as ErrorResponse;
-      return { error: errData.message || "Couldn't create brand!", data: null };
+      console.log(errData);
+      return { error: errData.message || "Couldn't create zone!", data: null };
     }
   }
 
   // ================================
-  // UPDATE BRAND
+  // UPDATE ZONE
   // ================================
-  static async updateBrand(
-    brandId: string,
-    data: UpdateBrandPayload,
-  ): Promise<{ error: string | null; data: Brand | null }> {
+  static async updateZone(
+    id: string,
+    data: Partial<CreateZoneInput>,
+  ): Promise<{ error: string | null; data: Zone | null }> {
     try {
-      const res = await api.put("/brands/" + brandId, data);
+      const res = await api.put("/zone/" + id, data);
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success")
         return { error: resData.message, data: null };
 
-      return { error: null, data: resData.data as Brand };
+      return { error: null, data: resData.data as Zone };
     } catch (error) {
       console.log(error);
       const err = error as AxiosError;
@@ -105,11 +118,11 @@ export class ZonesServices {
   }
 
   // ================================
-  // DELETE BRAND
+  // DELETE ZONE
   // ================================
-  static async deleteBrand(brandId: string): Promise<{ error: string | null }> {
+  static async deleteZone(id: string): Promise<{ error: string | null }> {
     try {
-      const res = await api.delete("/brands/" + brandId);
+      const res = await api.delete("/zone/" + id);
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success") return { error: resData.message };
@@ -119,7 +132,7 @@ export class ZonesServices {
       console.log(error);
       const err = error as AxiosError;
       const errData = err.response?.data as ErrorResponse;
-      return { error: errData.message || "Couldn't delete brand!" };
+      return { error: errData.message || "Couldn't delete zone!" };
     }
   }
 
@@ -127,7 +140,7 @@ export class ZonesServices {
   // GET ZONES COUNT
   // ================================
 
-  static async getZonesCount({
+  static async getZonesStats({
     is_active,
     without_stores,
   }: {
@@ -135,32 +148,59 @@ export class ZonesServices {
     without_stores?: boolean;
   }): Promise<{
     error: string | null;
-    count: {
-      zones: number;
-      activeZones: number;
-      zonesWithoutStores: number;
-    } | null;
+    data: ZoneStats | null;
   }> {
     try {
-      let url = "/zone/count/?";
+      let url = "/zone/stats/?";
 
       if (is_active) url += `is_active=${is_active}`;
       if (without_stores) url += `&without_stores=${without_stores}`;
 
-      const res = await api.get("/zone/count");
+      const res = await api.get(url);
       const resData = res.data as SuccessResponse;
 
       if (resData.status !== "success")
-        return { error: resData.message, count: null };
+        return { error: resData.message, data: null };
 
-      return { error: null, count: resData.data };
+      return { error: null, data: resData.data as ZoneStats };
     } catch (error) {
       const err = error as AxiosError;
       console.log(err.response);
       const errData = err.response?.data as ErrorResponse;
       return {
-        error: errData.message || "Couldn't get brands count!",
-        count: null,
+        error: errData.message || "Couldn't get zones stats!",
+        data: null,
+      };
+    }
+  }
+
+  // ================================
+  // GET OVERLAPPING ZONES
+  // ================================
+
+  static async getOverlappingZones(
+    boundary: CreateZoneInput["boundary"],
+  ): Promise<{
+    error: string | null;
+    data: Zone[] | null;
+  }> {
+    try {
+      let url = "/zone/overlapping/?";
+
+      const res = await api.post(url, boundary);
+      const resData = res.data as SuccessResponse;
+
+      if (resData.status !== "success")
+        return { error: resData.message, data: null };
+
+      return { error: null, data: resData.data as Zone[] };
+    } catch (error) {
+      const err = error as AxiosError;
+      console.log(err.response);
+      const errData = err.response?.data as ErrorResponse;
+      return {
+        error: errData.message || "Couldn't get overlapping zones!",
+        data: null,
       };
     }
   }

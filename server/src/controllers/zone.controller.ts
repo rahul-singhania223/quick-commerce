@@ -1,123 +1,40 @@
+import { Request, Response, NextFunction } from "express";
 import asyncHandler from "../utils/async-handler.js";
+import { ApiError } from "../utils/api-error.js";
+import { APIResponse } from "../utils/api-response.util.js";
 import {
   getAllZones as fetchAllZones,
-  getZone as fetchZone,
+  getZoneStats as fetchZoneStats,
   getZoneByName,
+  createZone as createDbZone,
+  getOverlappingZones as fetchOverlappingZones,
+  deleteZone as deleteDbZone,
 } from "../models/zone.model.js";
-import { APIResponse } from "../utils/api-response.util.js";
-import { NextFunction, Request, Response } from "express";
-import { ApiError } from "../utils/api-error.js";
 import z from "zod";
 import { createZoneSchema } from "../schemas/zone.schema.js";
-import { Prisma, Zone } from "../generated/prisma/client.js";
-import { v4, validate as isValidUUID } from "uuid";
-import {
-  createZone as createDbZone,
-  getZone as getDbZone,
-  updateZone as updateDbZone,
-  deleteZone as deleteDbZone,
-  getZonesCount as fetchZonesCount,
-} from "../models/zone.model.js";
-import { isPointInPolygon } from "../utils/location.util.js";
+import db from "../configs/db.config.js";
+import { validate as isValidUUID } from "uuid";
+import { Prisma } from "../generated/prisma/client.js";
 
-// ===================================================================
-// =================== ZONE COUNTS ===============================
-// ===================================================================
-
-// GET ZONES COUNT
-export const getZonesCount = asyncHandler(
+// GET ZONES STATS
+export const getZoneStats = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const [zonesCount, activeZonesCount, zonesWithoutStoresCount] =
-      await Promise.all([
-        fetchZonesCount({}),
-        fetchZonesCount({ is_active: true }),
-        fetchZonesCount({ without_stores: true }),
-      ]);
-
-    const count = {
-      zones: zonesCount,
-      activeZones: activeZonesCount,
-      zonesWithoutStores: zonesWithoutStoresCount,
-    };
+    const stats = await fetchZoneStats();
+    if (!stats)
+      return next(new ApiError(404, "DB_ERROR", "Couldn't get zones stats!"));
 
     return res
       .status(200)
       .json(
-        new APIResponse("success", "Zones count fetched successfully!", count),
+        new APIResponse("success", "Zones stats fetched successfully!", stats),
       );
   },
 );
 
-// GET ACTIVE ZONES COUNT
-// export const getActiveZonesCount = asyncHandler(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     const count = await fetchZonesCount({ is_active: true });
-//     return res.status(200).json(
-//       new APIResponse("success", "Active zones count fetched successfully!", {
-//         count,
-//       }),
-//     );
-//   },
-// );
-
-// GET ZONE BY POSITION
-export const getZoneByPosition = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const lng = Number(req.query.lng);
-    const lat = Number(req.query.lat);
-
-    if (Number.isNaN(lng) || Number.isNaN(lat)) {
-      return next(
-        new ApiError(400, "INVALID_DATA", "Valid lng and lat are required!"),
-      );
-    }
-
-    const zones = await fetchAllZones({ is_active: true });
-    if (!zones || zones.length === 0) {
-      return next(new ApiError(404, "DB_ERROR", "No zones found"));
-    }
-
-    const point: [number, number] = [lng, lat];
-
-    const matchedZone = zones.find((zone: Zone) => {
-      const boundary = zone.boundary as any;
-
-      if (!boundary || boundary.type !== "Polygon") return false;
-
-      const polygon = boundary.coordinates[0] as [number, number][];
-      return isPointInPolygon(point, polygon);
-    });
-
-    console.log(matchedZone);
-
-    if (!matchedZone) {
-      return res.status(200).json(
-        new APIResponse("success", "No zone identified", {
-          success: false,
-          message: "Currently we do not operate in your area!",
-        }),
-      );
-    }
-
-    return res.status(200).json(
-      new APIResponse("success", "Zone identified successfully", {
-        success: true,
-        zone: { id: matchedZone.id, name: matchedZone.name },
-        message: "We are operating in your area!",
-      }),
-    );
-  },
-);
-
-// GET ALL ZONES
+// GET ZONES
 export const getAllZones = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const query = req.query;
-    const is_active = query.is_active
-      ? Boolean(Number(query.is_active))
-      : undefined;
-
-    const zones = await fetchAllZones({ ...query, is_active });
+    const zones = await fetchAllZones();
     if (!zones)
       return next(new ApiError(404, "DB_ERROR", "Couldn't get zones!"));
 
@@ -127,81 +44,239 @@ export const getAllZones = asyncHandler(
   },
 );
 
-// GET ZONE
-export const getZone = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.id;
-    if (!id || !isValidUUID(id))
-      return next(new ApiError(400, "INVALID_DATA", "Invalid zone ID!"));
-
-    const zone = await getDbZone(id);
-    if (!zone) return next(new ApiError(404, "DB_ERROR", "Zone not found!"));
-
-    return res
-      .status(200)
-      .json(new APIResponse("success", "Zone fetched successfully!", zone));
-  },
-);
-
-// ==================================================
-// ========== CREATE ZONE
-// ==================================================
+// CREATE ZONE
 export const createZone = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const data = req.body as z.infer<typeof createZoneSchema>;
     if (!data)
-      return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
-      );
+      return next(new ApiError(400, "INVALID_DATA", "Invalid zone data!"));
 
-    const { name, city, is_active, boundary } = data;
-
-    // check existing zone
-    const exisitingZone = await getZoneByName(name);
-    if (exisitingZone)
-      return next(new ApiError(400, "DB_ERROR", "Zone already exists!"));
-
-    // create new zone
-    const newZoneData: Prisma.ZoneCreateInput = {
+    const {
       name,
-      boundary,
       city,
+      boundary,
+      priority,
       is_active,
-    };
+      base_fee,
+      per_km_fee,
+      avg_prep_time,
+    } = data;
 
-    const newZone = await createDbZone(newZoneData);
+    // Validate GeoJSON
+    if (
+      boundary.type !== "Polygon" ||
+      !Array.isArray(boundary.coordinates) ||
+      boundary.coordinates.length === 0
+    ) {
+      return next(new ApiError(400, "INVALID_DATA", "Invalid GeoJSON Polygon"));
+    }
+    const ring = boundary.coordinates[0];
+
+    if (!Array.isArray(ring) || ring.length < 4) {
+      return next(
+        new ApiError(
+          400,
+          "INVALID_DATA",
+          "Polygon must have at least 4 points",
+        ),
+      );
+    }
+
+    const first = ring[0];
+    const last = ring[ring.length - 1];
+
+    if (first[0] !== last[0] || first[1] !== last[1]) {
+      return next(new ApiError(400, "INVALID_DATA", "Polygon must be closed"));
+    }
+
+    // Duplicate check
+    const existing = await getZoneByName(name);
+    if (existing) {
+      return next(new ApiError(400, "ZONE_EXISTS", "Zone already exists!"));
+    }
+
+    // create zone
+    const newZone = await createDbZone({
+      name,
+      city,
+      boundary,
+      priority,
+      base_fee,
+      is_active,
+      per_km_fee,
+      avg_prep_time,
+    });
+
+    // update zone stats
+    const updatedStats = await db.zoneStats.update({
+      where: { id: "GLOBAL" },
+      data: {
+        zones_count: { increment: 1 },
+        no_stores_count: { increment: 1 },
+        low_riders_count: { increment: 1 },
+        active_zones_count: { increment: is_active ? 1 : 0 },
+      },
+    });
+
+    if (!updatedStats)
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update zone stats!"));
+
     if (!newZone)
-      return next(new ApiError(500, "DB_ERROR", "Couldn't create new zone!"));
+      return next(new ApiError(500, "DB_ERROR", "Couldn't create zone!"));
 
     return res
       .status(200)
-      .json(new APIResponse("success", "Created new zone", newZone));
+      .json(new APIResponse("success", "Zone created successfully!", newZone));
+  },
+);
+
+// GET OVERLAPPING ZONES
+export const getOverlappingZones = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const boundary = req.body as z.infer<typeof createZoneSchema>["boundary"];
+    if (!boundary)
+      return next(new ApiError(400, "INVALID_DATA", "Invalid boundary data!"));
+
+    const zones = await fetchOverlappingZones(boundary);
+    if (!zones)
+      return next(new ApiError(404, "DB_ERROR", "Couldn't get zones!"));
+
+    return res
+      .status(200)
+      .json(new APIResponse("success", "Zones fetched successfully!", zones));
   },
 );
 
 // UPDATE ZONE
 export const updateZone = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const zoneId = req.params.id;
-    if (!zoneId || !isValidUUID(zoneId))
+    const id = req.params.id;
+    if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid zone ID!"));
 
     const data = req.body as z.infer<typeof createZoneSchema>;
     if (!data)
-      return next(
-        new ApiError(400, "INVALID_DATA", "All input fields are required!"),
-      );
+      return next(new ApiError(400, "INVALID_DATA", "Invalid zone data!"));
 
-    const existingZone = await getDbZone(zoneId);
-    if (!existingZone)
-      return next(new ApiError(404, "DB_ERROR", "Zone not found!"));
+    const {
+      name,
+      city,
+      boundary,
+      priority,
+      is_active,
+      base_fee,
+      per_km_fee,
+      avg_prep_time,
+    } = data;
 
-    const updatedZoneData: Prisma.ZoneUpdateInput = {
-      ...existingZone,
-      ...data,
-    };
+    // Validate GeoJSON
+    if (boundary) {
+      if (
+        boundary.type !== "Polygon" ||
+        !Array.isArray(boundary.coordinates) ||
+        boundary.coordinates.length === 0
+      ) {
+        return next(
+          new ApiError(400, "INVALID_DATA", "Invalid GeoJSON Polygon"),
+        );
+      }
+      const ring = boundary.coordinates[0];
 
-    const updatedZone = await updateDbZone(zoneId, updatedZoneData);
+      if (!Array.isArray(ring) || ring.length < 4) {
+        return next(
+          new ApiError(
+            400,
+            "INVALID_DATA",
+            "Polygon must have at least 4 points",
+          ),
+        );
+      }
+
+      const first = ring[0];
+      const last = ring[ring.length - 1];
+
+      if (first[0] !== last[0] || first[1] !== last[1]) {
+        return next(
+          new ApiError(400, "INVALID_DATA", "Polygon must be closed"),
+        );
+      }
+    }
+
+    // Duplicate check
+    try {
+      await db.$transaction(async (tx) => {
+        // check existing zone
+        const existing = await tx.zone.findUnique({
+          where: { id },
+          select: { id: true, name: true },
+        });
+        if (!existing)
+          throw new ApiError(400, "ZONE_NOT_FOUND", "Zone not found!");
+
+        // check duplicate
+        if (name && name !== existing.name) {
+          const existingZone = await tx.zone.findUnique({
+            where: { name },
+            select: { id: true },
+          });
+          if (existingZone)
+            throw new ApiError(
+              400,
+              "ZONE_EXISTS",
+              "Zone with this name already exists!",
+            );
+        }
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return next(error);
+      }
+
+      console.log(error);
+      return next(new ApiError(500, "DB_ERROR", "Couldn't update zone!"));
+    }
+
+    const updateData: Prisma.ZoneUpdateInput = {};
+
+    if (name !== undefined) updateData.name = name;
+    if (city !== undefined) updateData.city = city;
+    if (priority !== undefined) updateData.priority = priority;
+    if (base_fee !== undefined) updateData.base_fee = base_fee;
+    if (per_km_fee !== undefined) updateData.per_km_fee = per_km_fee;
+    if (avg_prep_time !== undefined) updateData.avg_prep_time = avg_prep_time;
+    if (is_active !== undefined) updateData.is_active = is_active;
+
+    // update zone
+
+    // If boundary updated → must use raw SQL to update geometry
+    if (boundary) {
+      const boundaryJSON = JSON.stringify(boundary);
+
+      const updatedBoundary = await db.$executeRaw`
+        UPDATE "Zone"
+        SET
+          boundary = ${boundaryJSON}::jsonb,
+          boundary_geom = ST_SetSRID(
+            ST_GeomFromGeoJSON(${boundaryJSON}),
+            4326
+          ),
+          "updated_at" = NOW()
+        WHERE id = ${id};
+      `;
+
+      if (!updatedBoundary)
+        return next(new ApiError(500, "DB_ERROR", "Couldn't update zone!"));
+    }
+
+    // Update non-geometry fields via Prisma
+    let updatedZone = null;
+    if (Object.keys(updateData).length > 0) {
+      updatedZone = await db.zone.update({
+        where: { id },
+        data: updateData,
+      });
+    }
+
     if (!updatedZone)
       return next(new ApiError(500, "DB_ERROR", "Couldn't update zone!"));
 
@@ -213,19 +288,14 @@ export const updateZone = asyncHandler(
   },
 );
 
-// DELETE ZONE
+// DELELETE ZONE
 export const deleteZone = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const zoneId = req.params.id;
-    console.log(zoneId);
-    if (!zoneId || !isValidUUID(zoneId))
+    const id = req.params.id;
+    if (!id || !isValidUUID(id))
       return next(new ApiError(400, "INVALID_DATA", "Invalid zone ID!"));
 
-    const existingZone = await getDbZone(zoneId);
-    if (!existingZone)
-      return next(new ApiError(404, "DB_ERROR", "Zone not found!"));
-
-    const deletedZone = await deleteDbZone(zoneId);
+    const deletedZone = await deleteDbZone(id);
     if (!deletedZone)
       return next(new ApiError(500, "DB_ERROR", "Couldn't delete zone!"));
 

@@ -1,54 +1,58 @@
 import { Router } from "express";
 import {
+  createZone,
+  deleteZone,
+  getAllZones,
+  getOverlappingZones,
+  getZoneStats,
+  updateZone,
+} from "../controllers/zone.controller.js";
+import {
   authorizeAdmin,
   authorizeUser,
 } from "../middleware/auth.middleware.js";
 import { validateForm } from "../middleware/validate.middleware.js";
-import {
-  createZone,
-  deleteZone,
-  getAllZones,
-  getZone,
-  getZoneByPosition,
-  getZonesCount,
-  updateZone,
-} from "../controllers/zone.controller.js";
-
 import { createZoneSchema } from "../schemas/zone.schema.js";
 
 const router = Router();
 
-// GET ZONES COUNT
-router.get("/count", getZonesCount);
+// GET OVERLAPPING ZONES
+router.post(
+  "/overlapping",
+  // authorizeUser,
+  //  authorizeAdmin,
+  getOverlappingZones,
+);
 
-// GET ZONE BY POSITION
-router.get("/position", getZoneByPosition);
+// GET ZONES STATS
+router.get("/stats", getZoneStats);
 
 // GET ALL ZONES
 router.get("/", getAllZones);
 
-// GET ZONE
-router.get("/:id", getZone);
-
 // CREATE ZONE
 router.post(
   "/",
-  validateForm(createZoneSchema),
   // authorizeUser,
   // authorizeAdmin,
+  validateForm(createZoneSchema),
   createZone,
 );
 
 // UPDATE ZONE
 router.put(
-  "/update/:id",
-  validateForm(createZoneSchema),
-  authorizeUser,
-  authorizeAdmin,
+  "/:id",
+  // authorizeUser,
+  // authorizeAdmin,
   updateZone,
 );
 
 // DELETE ZONE
-router.delete("/:id", authorizeUser, authorizeAdmin, deleteZone);
+router.delete(
+  "/:id",
+  // authorizeUser,
+  // authorizeAdmin,
+  deleteZone,
+);
 
 export default router;

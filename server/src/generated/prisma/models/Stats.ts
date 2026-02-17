@@ -34,6 +34,7 @@ export type StatsAvgAggregateOutputType = {
   stores_count: number | null
   customers_count: number | null
   delivery_partners_count: number | null
+  zones_count: number | null
 }
 
 export type StatsSumAggregateOutputType = {
@@ -44,6 +45,7 @@ export type StatsSumAggregateOutputType = {
   stores_count: number | null
   customers_count: number | null
   delivery_partners_count: number | null
+  zones_count: number | null
 }
 
 export type StatsMinAggregateOutputType = {
@@ -55,6 +57,7 @@ export type StatsMinAggregateOutputType = {
   stores_count: number | null
   customers_count: number | null
   delivery_partners_count: number | null
+  zones_count: number | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -68,6 +71,7 @@ export type StatsMaxAggregateOutputType = {
   stores_count: number | null
   customers_count: number | null
   delivery_partners_count: number | null
+  zones_count: number | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -81,6 +85,7 @@ export type StatsCountAggregateOutputType = {
   stores_count: number
   customers_count: number
   delivery_partners_count: number
+  zones_count: number
   created_at: number
   updated_at: number
   _all: number
@@ -95,6 +100,7 @@ export type StatsAvgAggregateInputType = {
   stores_count?: true
   customers_count?: true
   delivery_partners_count?: true
+  zones_count?: true
 }
 
 export type StatsSumAggregateInputType = {
@@ -105,6 +111,7 @@ export type StatsSumAggregateInputType = {
   stores_count?: true
   customers_count?: true
   delivery_partners_count?: true
+  zones_count?: true
 }
 
 export type StatsMinAggregateInputType = {
@@ -116,6 +123,7 @@ export type StatsMinAggregateInputType = {
   stores_count?: true
   customers_count?: true
   delivery_partners_count?: true
+  zones_count?: true
   created_at?: true
   updated_at?: true
 }
@@ -129,6 +137,7 @@ export type StatsMaxAggregateInputType = {
   stores_count?: true
   customers_count?: true
   delivery_partners_count?: true
+  zones_count?: true
   created_at?: true
   updated_at?: true
 }
@@ -142,6 +151,7 @@ export type StatsCountAggregateInputType = {
   stores_count?: true
   customers_count?: true
   delivery_partners_count?: true
+  zones_count?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -242,6 +252,7 @@ export type StatsGroupByOutputType = {
   stores_count: number
   customers_count: number
   delivery_partners_count: number
+  zones_count: number
   created_at: Date
   updated_at: Date
   _count: StatsCountAggregateOutputType | null
@@ -278,6 +289,7 @@ export type StatsWhereInput = {
   stores_count?: Prisma.IntFilter<"Stats"> | number
   customers_count?: Prisma.IntFilter<"Stats"> | number
   delivery_partners_count?: Prisma.IntFilter<"Stats"> | number
+  zones_count?: Prisma.IntFilter<"Stats"> | number
   created_at?: Prisma.DateTimeFilter<"Stats"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Stats"> | Date | string
 }
@@ -291,6 +303,7 @@ export type StatsOrderByWithRelationInput = {
   stores_count?: Prisma.SortOrder
   customers_count?: Prisma.SortOrder
   delivery_partners_count?: Prisma.SortOrder
+  zones_count?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -307,6 +320,7 @@ export type StatsWhereUniqueInput = Prisma.AtLeast<{
   stores_count?: Prisma.IntFilter<"Stats"> | number
   customers_count?: Prisma.IntFilter<"Stats"> | number
   delivery_partners_count?: Prisma.IntFilter<"Stats"> | number
+  zones_count?: Prisma.IntFilter<"Stats"> | number
   created_at?: Prisma.DateTimeFilter<"Stats"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Stats"> | Date | string
 }, "id">
@@ -320,6 +334,7 @@ export type StatsOrderByWithAggregationInput = {
   stores_count?: Prisma.SortOrder
   customers_count?: Prisma.SortOrder
   delivery_partners_count?: Prisma.SortOrder
+  zones_count?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.StatsCountOrderByAggregateInput
@@ -341,6 +356,7 @@ export type StatsScalarWhereWithAggregatesInput = {
   stores_count?: Prisma.IntWithAggregatesFilter<"Stats"> | number
   customers_count?: Prisma.IntWithAggregatesFilter<"Stats"> | number
   delivery_partners_count?: Prisma.IntWithAggregatesFilter<"Stats"> | number
+  zones_count?: Prisma.IntWithAggregatesFilter<"Stats"> | number
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Stats"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Stats"> | Date | string
 }
@@ -354,6 +370,7 @@ export type StatsCreateInput = {
   stores_count?: number
   customers_count?: number
   delivery_partners_count?: number
+  zones_count?: number
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -367,6 +384,7 @@ export type StatsUncheckedCreateInput = {
   stores_count?: number
   customers_count?: number
   delivery_partners_count?: number
+  zones_count?: number
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -380,6 +398,7 @@ export type StatsUpdateInput = {
   stores_count?: Prisma.IntFieldUpdateOperationsInput | number
   customers_count?: Prisma.IntFieldUpdateOperationsInput | number
   delivery_partners_count?: Prisma.IntFieldUpdateOperationsInput | number
+  zones_count?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -393,6 +412,7 @@ export type StatsUncheckedUpdateInput = {
   stores_count?: Prisma.IntFieldUpdateOperationsInput | number
   customers_count?: Prisma.IntFieldUpdateOperationsInput | number
   delivery_partners_count?: Prisma.IntFieldUpdateOperationsInput | number
+  zones_count?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -406,6 +426,7 @@ export type StatsCreateManyInput = {
   stores_count?: number
   customers_count?: number
   delivery_partners_count?: number
+  zones_count?: number
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -419,6 +440,7 @@ export type StatsUpdateManyMutationInput = {
   stores_count?: Prisma.IntFieldUpdateOperationsInput | number
   customers_count?: Prisma.IntFieldUpdateOperationsInput | number
   delivery_partners_count?: Prisma.IntFieldUpdateOperationsInput | number
+  zones_count?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -432,6 +454,7 @@ export type StatsUncheckedUpdateManyInput = {
   stores_count?: Prisma.IntFieldUpdateOperationsInput | number
   customers_count?: Prisma.IntFieldUpdateOperationsInput | number
   delivery_partners_count?: Prisma.IntFieldUpdateOperationsInput | number
+  zones_count?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -445,6 +468,7 @@ export type StatsCountOrderByAggregateInput = {
   stores_count?: Prisma.SortOrder
   customers_count?: Prisma.SortOrder
   delivery_partners_count?: Prisma.SortOrder
+  zones_count?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -457,6 +481,7 @@ export type StatsAvgOrderByAggregateInput = {
   stores_count?: Prisma.SortOrder
   customers_count?: Prisma.SortOrder
   delivery_partners_count?: Prisma.SortOrder
+  zones_count?: Prisma.SortOrder
 }
 
 export type StatsMaxOrderByAggregateInput = {
@@ -468,6 +493,7 @@ export type StatsMaxOrderByAggregateInput = {
   stores_count?: Prisma.SortOrder
   customers_count?: Prisma.SortOrder
   delivery_partners_count?: Prisma.SortOrder
+  zones_count?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -481,6 +507,7 @@ export type StatsMinOrderByAggregateInput = {
   stores_count?: Prisma.SortOrder
   customers_count?: Prisma.SortOrder
   delivery_partners_count?: Prisma.SortOrder
+  zones_count?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -493,6 +520,7 @@ export type StatsSumOrderByAggregateInput = {
   stores_count?: Prisma.SortOrder
   customers_count?: Prisma.SortOrder
   delivery_partners_count?: Prisma.SortOrder
+  zones_count?: Prisma.SortOrder
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -522,6 +550,7 @@ export type StatsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   stores_count?: boolean
   customers_count?: boolean
   delivery_partners_count?: boolean
+  zones_count?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["stats"]>
@@ -535,6 +564,7 @@ export type StatsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   stores_count?: boolean
   customers_count?: boolean
   delivery_partners_count?: boolean
+  zones_count?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["stats"]>
@@ -548,6 +578,7 @@ export type StatsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   stores_count?: boolean
   customers_count?: boolean
   delivery_partners_count?: boolean
+  zones_count?: boolean
   created_at?: boolean
   updated_at?: boolean
 }, ExtArgs["result"]["stats"]>
@@ -561,11 +592,12 @@ export type StatsSelectScalar = {
   stores_count?: boolean
   customers_count?: boolean
   delivery_partners_count?: boolean
+  zones_count?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type StatsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "products_count" | "brands_count" | "categories_count" | "users_count" | "stores_count" | "customers_count" | "delivery_partners_count" | "created_at" | "updated_at", ExtArgs["result"]["stats"]>
+export type StatsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "products_count" | "brands_count" | "categories_count" | "users_count" | "stores_count" | "customers_count" | "delivery_partners_count" | "zones_count" | "created_at" | "updated_at", ExtArgs["result"]["stats"]>
 
 export type $StatsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Stats"
@@ -579,6 +611,7 @@ export type $StatsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     stores_count: number
     customers_count: number
     delivery_partners_count: number
+    zones_count: number
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["stats"]>
@@ -1012,6 +1045,7 @@ export interface StatsFieldRefs {
   readonly stores_count: Prisma.FieldRef<"Stats", 'Int'>
   readonly customers_count: Prisma.FieldRef<"Stats", 'Int'>
   readonly delivery_partners_count: Prisma.FieldRef<"Stats", 'Int'>
+  readonly zones_count: Prisma.FieldRef<"Stats", 'Int'>
   readonly created_at: Prisma.FieldRef<"Stats", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Stats", 'DateTime'>
 }
